@@ -47,10 +47,3 @@ targets:
   default:
     filesets :
       - rtl
-      
-provider:
-  name    : github
-  user    : open-logic
-  repo    : open-logic
-  version : 3.0.2
-  

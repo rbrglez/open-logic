@@ -29,9 +29,3 @@ targets:
         device : 5CEBA4F23C7
         board_device_index : 2
     toplevel: quartus_tutorial
-
-provider:
-  name    : github
-  user    : open-logic
-  repo    : open-logic
-  version : 3.0.2
