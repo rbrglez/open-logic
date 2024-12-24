@@ -17,6 +17,9 @@
 -- Note: The link points to the documentation of the latest release. If you
 --       use an older version, the documentation might not match the code.
 
+-- Dummy change. Testing fusesoc version capability
+-- This change is done on 4.0.0-dev
+
 ---------------------------------------------------------------------------------------------------
 -- Libraries
 ---------------------------------------------------------------------------------------------------
