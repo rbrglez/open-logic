@@ -1,6 +1,6 @@
 CAPI=2:
 
-name : open-logic:open-logic:base:3.1.0
+name : open-logic:open-logic:base:3.1.0-dev
 description : this is dummy version 3.1.0-dev
 
 filesets:
