@@ -1,7 +1,7 @@
 CAPI=2:
 
-name : open-logic:open-logic:axi:3.2.0
-description : "dummy axi description 3.2.0. This is development version!"
+name : open-logic:open-logic:axi:3.2.0-dev
+description : "dummy axi description 3.2.0-dev. This is development version!"
 
 filesets:
   rtl:
