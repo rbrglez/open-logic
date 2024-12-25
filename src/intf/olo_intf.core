@@ -1,7 +1,7 @@
 CAPI=2:
 
-name : open-logic:open-logic:intf:3.2.0-dev
-description : "dummy intf description 3.2.0-dev. This is development version!"
+name : open-logic:open-logic:intf:4.0.0
+description : "dummy intf description 4.0.0. This is development version!"
 
 filesets:
   rtl:
@@ -16,7 +16,7 @@ filesets:
     file_type : vhdlSource
     logical_name : olo
     depend :
-      - "^open-logic:open-logic:base:3.2.0"
+      - "^open-logic:open-logic:base:4.0.0"
 
 
 targets:
