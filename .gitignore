@@ -21,3 +21,7 @@ _info
 *.qpg
 *.qtl
 _vmake
+
+#Fusesoc files
+fusesoc.conf
+build/
