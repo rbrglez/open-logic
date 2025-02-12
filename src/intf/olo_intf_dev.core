@@ -17,10 +17,9 @@ filesets:
     logical_name : olo
     depend :
       - "^open-logic:open-logic-dev:base:3.1.0"
-
+      - "^enclustra:library:fixed-point:0.1.0"
 
 targets:
   default:
     filesets :
       - rtl
-  

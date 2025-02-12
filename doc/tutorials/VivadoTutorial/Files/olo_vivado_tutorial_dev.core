@@ -27,4 +27,5 @@ targets:
     tools:
       vivado:
         part : xc7z010clg400-1
+        source_mgmt_mode: "All"
     toplevel : vivado_tutorial

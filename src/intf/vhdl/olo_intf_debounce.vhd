@@ -26,6 +26,8 @@ library ieee;
 
 library work;
     use work.olo_base_pkg_array.all;
+    use work.en_cl_fix_pkg.all; -- Added dummy dependency to fixed-point library
+
 
 ---------------------------------------------------------------------------------------------------
 -- Entity
