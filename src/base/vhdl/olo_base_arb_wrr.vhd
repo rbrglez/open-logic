@@ -116,8 +116,8 @@ begin
     -- Combinatorial Process
     -----------------------------------------------------------------------------------------------
     p_comb : process (all) is
-        variable v               : TwoProcess_t;
-        variable WeightCurrent_v : unsigned(WeightWidth_g - 1 downto 0);
+        variable v                   : TwoProcess_t;
+        variable WeightCurrent_v     : unsigned(WeightWidth_g - 1 downto 0);
         variable WeighsUnflattened_v : StlvArray_t(0 to GrantWidth_g - 1)(WeightWidth_g - 1 downto 0);
     begin
         -- Hold variables stable
@@ -133,7 +133,7 @@ begin
 
         -- Switchover detection
         WeighsUnflattened_v := unflattenStlvArray(r.Weights, WeightWidth_g);
-        WeightCurrent_v := unsigned(WeighsUnflattened_v(r.GrantIdx));
+        WeightCurrent_v     := unsigned(WeighsUnflattened_v(r.GrantIdx));
         if ((r.WeightCnt >= WeightCurrent_v) and r.Valid = '1') or unsigned(r.Grant and In_Req) = 0 then
             v.Switchover := '1';
         end if;

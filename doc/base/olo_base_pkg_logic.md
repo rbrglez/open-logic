@@ -122,7 +122,7 @@ invertByteOrder(inp : in std_logic_vector) return std_logic_vector;
 
 ### getSetBitIndex()
 
-Return the index of the first set bit (`'1'`) in a *std\_logic\_vector*.
+Return the index of the first set bit (`'1'`) in a _std\_logic\_vector_.
 
 The search direction is controlled by the `fromMsb` flag:
 
@@ -142,7 +142,8 @@ function getSetBitIndex(vec : in std_logic_vector; fromMsb : in boolean) return 
 
 ### getLeadingSetBitIndex()
 
-Return the index of the first set bit (`'1'`) in a *std\_logic\_vector*, starting the search from the most significant bit (MSB).
+Return the index of the first set bit (`'1'`) in a _std\_logic\_vector_,
+starting the search from the most significant bit (MSB).
 
 If no bits are set, returns `vec'low`.
 
@@ -154,7 +155,8 @@ function getLeadingSetBitIndex(vec : in std_logic_vector) return integer;
 
 ### getTrailingSetBitIndex()
 
-Return the index of the first set bit (`'1'`) in a *std\_logic\_vector*, starting the search from the least significant bit (LSB).
+Return the index of the first set bit (`'1'`) in a _std\_logic\_vector_,
+starting the search from the least significant bit (LSB).
 
 If no bits are set, returns `vec'high`.
 

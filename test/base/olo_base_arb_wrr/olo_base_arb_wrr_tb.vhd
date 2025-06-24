@@ -627,6 +627,67 @@ begin
 
             end if;
 
+            --------------------------------------------------------------------
+            --------------------------------------------------------------------
+            if run("ExampleFromDoc_RequestsChange") then
+
+                In_Req_v          := "10101";
+                In_WeightsArray_v := (0,
+                                      3,
+                                      1,
+                                      0,
+                                      3);
+                testSample(net, In_WeightsArray_v, In_Req_v, "00100", Msg => "0");
+                testSample(net, In_WeightsArray_v, In_Req_v, "00001", Msg => "1");
+                testSample(net, In_WeightsArray_v, In_Req_v, "00001", Msg => "2");
+                In_Req_v          := "01110";
+                testSample(net, In_WeightsArray_v, In_Req_v, "01000", Msg => "3");
+                testSample(net, In_WeightsArray_v, In_Req_v, "01000", Msg => "4");
+                testSample(net, In_WeightsArray_v, In_Req_v, "01000", Msg => "5");
+                testSample(net, In_WeightsArray_v, In_Req_v, "00100", Msg => "6");
+
+            end if;
+
+            --------------------------------------------------------------------
+            --------------------------------------------------------------------
+            if run("ExampleFromDoc_WeightsChange") then
+
+                In_Req_v          := (others => '1');
+                In_WeightsArray_v := (1,
+                                      0,
+                                      0,
+                                      4,
+                                      0);
+                testSample(net, In_WeightsArray_v, In_Req_v, "10000", Msg => "0");
+                testSample(net, In_WeightsArray_v, In_Req_v, "00010", Msg => "1");
+                testSample(net, In_WeightsArray_v, In_Req_v, "00010", Msg => "2");
+                In_WeightsArray_v := (1,
+                                      0,
+                                      0,
+                                      1,
+                                      0);
+                testSample(net, In_WeightsArray_v, In_Req_v, "00010", Msg => "3");
+                testSample(net, In_WeightsArray_v, In_Req_v, "10000", Msg => "4");
+                testSample(net, In_WeightsArray_v, In_Req_v, "00010", Msg => "5");
+
+            end if;
+
+            --------------------------------------------------------------------
+            --------------------------------------------------------------------
+            if run("ExampleFromDoc_Static") then
+
+                In_WeightsArray_v := (1,
+                                      3,
+                                      2,
+                                      0,
+                                      1);
+                testSample(net, In_WeightsArray_v, "10111", "10000", Msg => "0");
+                testSample(net, In_WeightsArray_v, "10111", "00100", Msg => "1");
+                testSample(net, In_WeightsArray_v, "10111", "00100", Msg => "2");
+                testSample(net, In_WeightsArray_v, "10111", "00001", Msg => "3");
+
+            end if;
+
             wait_until_idle(net, as_sync(AxisSlave_c));
             wait_until_idle(net, as_sync(AxisMaster_c));
             wait for Clk_Period_c*10;
