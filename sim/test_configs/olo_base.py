@@ -217,6 +217,13 @@ def add_configs(olo_tb):
     arb_rr_tb = 'olo_base_arb_rr_tb'
     #Only one config required, hence no "add_config" looping
 
+    ### olo_base_arb_wrr###
+    arb_wrr_tb = 'olo_base_arb_wrr_tb'
+    tb = olo_tb.test_bench(arb_wrr_tb)
+    for RandomStall in [False, True]:
+        for Latency in [0, 1]:
+            named_config(tb, {'Latency_g' : Latency, 'RandomStall_g' : RandomStall})
+
     ### olo_base_strobe_gen ###
     strobe_gen_tb = 'olo_base_strobe_gen_tb'
     tb = olo_tb.test_bench(strobe_gen_tb)
@@ -235,7 +242,6 @@ def add_configs(olo_tb):
     for Latency in [0, 1]:
         for Ratio in [3, 4, 5, 6]:
             named_config(tb, {'Latency_g': Latency, 'Ratio_g' : Ratio})
-
 
     ### olo_base_prbs ###
     prbs_tbs = ['olo_base_prbs4_tb']
