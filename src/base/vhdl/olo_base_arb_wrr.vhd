@@ -24,6 +24,7 @@ library ieee;
     use ieee.numeric_std.all;
 
 library work;
+    use work.olo_base_pkg_array.all;
     use work.olo_base_pkg_math.all;
     use work.olo_base_pkg_logic.all;
 
@@ -42,7 +43,6 @@ entity olo_base_arb_wrr is
 
         -- Request Interface
         In_Valid   : in    std_logic;
-        In_Ready   : out   std_logic;
         In_Weights : in    std_logic_vector(WeightWidth_g*GrantWidth_g-1 downto 0);
         In_Req     : in    std_logic_vector(GrantWidth_g-1 downto 0);
 
@@ -77,28 +77,14 @@ architecture rtl of olo_base_arb_wrr is
         return RequestWeightsMask_v;
     end function;
 
-    -- state record
-    type State_t is (
-        Idle_s,
-        SendGrant_s
-    );
-
     -- Two Process Method
     type TwoProcess_t is record
-        -- Round Robin
-        RrReq        : std_logic_vector(In_Req'range);
-        RrGrantReady : std_logic;
-        -- Request Interface
-        ReqReady     : std_logic;
-        -- Weighted Round Robin Grant Interface
-        Grant        : std_logic_vector(Out_Grant'range);
-        GrantValid   : std_logic;
-        -- Support signals
-        GrantIdx     : integer;
-        Weight       : unsigned(WeightWidth_g - 1 downto 0);
-        WeightCnt    : unsigned(WeightWidth_g - 1 downto 0);
-        --
-        State        : State_t;
+        Valid      : std_logic;
+        WeightCnt  : unsigned(WeightWidth_g - 1 downto 0);
+        Weights    : std_logic_vector(WeightWidth_g * GrantWidth_g - 1 downto 0);
+        Grant      : std_logic_vector(Out_Grant'range);
+        GrantIdx   : natural range 0 to GrantWidth_g - 1;
+        Switchover : std_logic;
     end record;
 
     signal r      : TwoProcess_t;
@@ -107,10 +93,11 @@ architecture rtl of olo_base_arb_wrr is
     -- Component connection signals
     signal RrReq        : std_logic_vector(In_Req'range);
     signal RrGrant      : std_logic_vector(Out_Grant'range);
-    signal RrGrantValid : std_logic;
     signal RrGrantReady : std_logic;
 
 begin
+
+    RrReq <= In_Req and generateRequestWeightsMask(In_Weights, WeightWidth_g, GrantWidth_g);
 
     -- *** Component Instantiations ***
     i_arb_rr : entity work.olo_base_arb_rr
@@ -121,193 +108,65 @@ begin
             Clk       => Clk,
             Rst       => Rst,
             In_Req    => RrReq,
-            Out_Valid => RrGrantValid,
             Out_Ready => RrGrantReady,
             Out_Grant => RrGrant
         );
 
     -----------------------------------------------------------------------------------------------
-    -- Latency Implementation
+    -- Combinatorial Process
     -----------------------------------------------------------------------------------------------
-    g_latency : if (Latency_g /= 0) generate
+    p_comb : process (all) is
+        variable v               : TwoProcess_t;
+        variable WeightCurrent_v : unsigned(WeightWidth_g - 1 downto 0);
+        variable WeighsUnflattened_v : StlvArray_t(0 to GrantWidth_g - 1)(WeightWidth_g - 1 downto 0);
+    begin
+        -- Hold variables stable
+        v := r;
 
-        -- *** Combinatorial Process ***
-        p_comb : process (all) is
-            variable v : TwoProcess_t;
-        begin
+        -- Valid pipeline
+        v.Valid := In_Valid;
 
-            -- hold variables stable
-            v := r;
+        -- Detect switchover to new requester
+        if In_Valid = '1' then
+            v.Weights := In_Weights;
+        end if;
 
-            -- Pulsed Signals
-            v.GrantValid   := '0';
-            v.RrGrantReady := '0';
+        -- Switchover detection
+        WeighsUnflattened_v := unflattenStlvArray(r.Weights, WeightWidth_g);
+        WeightCurrent_v := unsigned(WeighsUnflattened_v(r.GrantIdx));
+        if ((r.WeightCnt >= WeightCurrent_v) and r.Valid = '1') or unsigned(r.Grant and In_Req) = 0 then
+            v.Switchover := '1';
+        end if;
 
-            -- FSM
-            case r.State is
-                ----------------------------------------------------------------
-                when Idle_s =>
-                    v.ReqReady := '1';
-                    if (In_Valid = '1' and r.ReqReady = '1') then
-                        v.ReqReady := '0';
-                        v.RrReq    := In_Req and generateRequestWeightsMask(In_Weights, WeightWidth_g, GrantWidth_g);
-                        v.Weight   := unsigned(In_Weights((r.GrantIdx + 1) * WeightWidth_g - 1 downto r.GrantIdx * WeightWidth_g));
+        -- Switchover Execution
+        RrGrantReady <= '0';
+        if (v.Switchover = '1') and (In_Valid = '1') then
+            v.Switchover := '0';
+            RrGrantReady <= '1';
+            if unsigned(RrGrant) = 0 then
+                v.GrantIdx := 0;
+            else
+                v.GrantIdx := getLeadingSetBitIndex(RrGrant);
+            end if;
+            v.Grant     := RrGrant;
+            v.WeightCnt := to_unsigned(1, WeightWidth_g);
+        elsif r.Valid = '1' then
+            v.WeightCnt := v.WeightCnt + 1;
+        end if;
 
-                        -- Get next Grant if current is invalid or
-                        -- can't be sent due to Request or Weight change
-                        if (
-                            r.WeightCnt = 0 or
-                            v.RrReq(r.GrantIdx) = '0' or
-                            r.WeightCnt >= v.Weight
-                        ) then
-                            -- Reset WeightCnt for new Grant
-                            v.WeightCnt    := (others => '0');
-                            v.RrGrantReady := '1';
-                            v.GrantIdx     := getLeadingSetBitIndex(RrGrant);
-                            -- Recalculate Weight as it may have changed because of new GrantIdx
-                            v.Weight := unsigned(In_Weights((v.GrantIdx + 1) * WeightWidth_g - 1 downto v.GrantIdx * WeightWidth_g));
-                            v.Grant  := RrGrant;
+        -- Write to signal
+        r_next <= v;
+    end process;
 
-                        end if;
-
-                        -- Assert GrantValid before entering SendGrant_s to minimize latency
-                        v.GrantValid := '1';
-                        v.State      := SendGrant_s;
-
-                    end if;
-
-                ----------------------------------------------------------------
-                when SendGrant_s =>
-                    -- WARNING: GrantValid must be asserted in the prior state.
-                    -- Otherwise the FSM won't respond to the input request!
-
-                    -- Sent zero Grant. Reset WeightCnt
-                    if (unsigned(r.Grant) = 0) then
-                        v.WeightCnt := (others => '0');
-
-                    -- All current Grants have been sent. Reset WeightCnt.
-                    elsif (r.WeightCnt >= r.Weight - 1) then
-                        v.WeightCnt := (others => '0');
-
-                    -- Current Grant is still valid and can be resent if requested.
-                    -- Increment WeightCnt.
-                    else
-                        v.WeightCnt := r.WeightCnt + 1;
-
-                    end if;
-
-                    -- Assert ReqReady before entering Idle_s to minimize latency
-                    v.ReqReady := '1';
-                    v.State    := Idle_s;
-
-                ----------------------------------------------------------------
-                -- coverage off
-                -- unreachable code
-                when others => null;
-                -- coverage on
-
-            end case;
-
-            -- Apply to record
-            r_next <= v;
-        end process;
-
-        -------------------------------------------------------------------------------------------
-        -- Assign outputs
-        -------------------------------------------------------------------------------------------
-        -- Request interface
-        In_Ready <= r.ReqReady;
-        -- Grant Interface
+    -- *** Output Assignment ***
+    g_latency : if (Latency_g = 1) generate
+        Out_Valid <= r.Valid;
         Out_Grant <= r.Grant;
-        Out_Valid <= r.GrantValid;
-        -- RoundRobin Component signals
-        RrReq        <= r_next.RrReq;
-        RrGrantReady <= r_next.RrGrantReady;
-
     end generate;
 
-    -----------------------------------------------------------------------------------------------
-    -- No Latency Implementation
-    -----------------------------------------------------------------------------------------------
     g_no_latency : if (Latency_g = 0) generate
-
-        -- *** Combinatorial Process ***
-        p_comb : process (all) is
-            variable v : TwoProcess_t;
-        begin
-            -- hold variables stable
-            v := r;
-
-            -- No Latency Implementation is always ready
-            v.ReqReady := '1';
-
-            -- Pulsed Signals
-            v.GrantValid   := '0';
-            v.RrGrantReady := '0';
-
-            v.State := Idle_s;
-            -- ReqReady statement is redundant, but added for completeness
-            if (In_Valid = '1' and v.ReqReady = '1') then
-                v.RrReq  := In_Req and generateRequestWeightsMask(In_Weights, WeightWidth_g, GrantWidth_g);
-                v.Weight := unsigned(In_Weights((r.GrantIdx + 1) * WeightWidth_g - 1 downto r.GrantIdx * WeightWidth_g));
-
-                -- Get next Grant if current is invalid or
-                -- can't be sent due to Request or Weight change
-                if (
-                    r.WeightCnt = 0 or
-                    v.RrReq(v.GrantIdx) = '0' or
-                    r.WeightCnt >= v.Weight
-                ) then
-                    -- Reset WeightCnt for new Grant
-                    v.WeightCnt    := (others => '0');
-                    v.RrGrantReady := '1';
-                    v.GrantIdx     := getLeadingSetBitIndex(RrGrant);
-                    -- Recalculate Weight as it may have changed because of new GrantIdx
-                    v.Weight := unsigned(In_Weights((v.GrantIdx + 1) * WeightWidth_g - 1 downto v.GrantIdx * WeightWidth_g));
-                    v.Grant  := RrGrant;
-
-                end if;
-
-                v.GrantValid := '1';
-                v.State      := SendGrant_s;
-
-            end if;
-
-            --------------------------------------------------------------------
-            -- Send The Grant (same for both GetRrGrant_s and SendGrant_s state)
-            if (v.State = SendGrant_s) then
-                -- Sent zero Grant. Reset WeightCnt
-                if (unsigned(v.Grant) = 0) then
-                    v.WeightCnt := (others => '0');
-
-                -- All current Grants have been sent. Reset WeightCnt.
-                elsif (v.WeightCnt >= v.Weight - 1) then
-                    v.WeightCnt := (others => '0');
-
-                -- Current Grant is still valid and can be resent if requested.
-                -- Increment WeightCnt.
-                else
-                    v.WeightCnt := v.WeightCnt + 1;
-
-                end if;
-            end if;
-
-            -- Apply to record
-            r_next <= v;
-        end process;
-
-        -------------------------------------------------------------------------------------------
-        -- Assign outputs
-        -------------------------------------------------------------------------------------------
-        -- Request interface
-        In_Ready <= r_next.ReqReady;
-        -- Grant Interface
+        Out_Valid <= r_next.Valid;
         Out_Grant <= r_next.Grant;
-        Out_Valid <= r_next.GrantValid;
-        -- RoundRobin Component signals
-        RrReq        <= r_next.RrReq;
-        RrGrantReady <= r_next.RrGrantReady;
-
     end generate;
 
     -- *** Sequential Process ***
@@ -316,14 +175,14 @@ begin
         if rising_edge(Clk) then
             r <= r_next;
             if Rst = '1' then
-                r.RrGrantReady <= '0';
-                r.GrantIdx     <= (GrantWidth_g - 1);
-                r.GrantValid   <= '0';
-                r.ReqReady     <= '0';
-                r.WeightCnt    <= (others => '0');
-                r.State        <= Idle_s;
+                r.Valid      <= '0';
+                r.GrantIdx   <= 0;
+                r.WeightCnt  <= (others => '0');
+                r.Weights    <= (others => '0');
+                r.Switchover <= '1';
             end if;
         end if;
     end process;
 
 end architecture;
+

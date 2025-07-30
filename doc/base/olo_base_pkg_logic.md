@@ -122,20 +122,12 @@ invertByteOrder(inp : in std_logic_vector) return std_logic_vector;
 
 ### getSetBitIndex()
 
-Get the index of the first bit index in vector vec starting either from MSB if fromMsb is true or starting from LSB if fromMsb is false
-
-```vhdl
-function getSetBitIndex(vec : in std_logic_vector; fromMsb : in boolean) return integer;
-```
-
-### getSetBitIndex()
-
 Return the index of the first set bit (`'1'`) in a *std\_logic\_vector*.
 
 The search direction is controlled by the `fromMsb` flag:
 
-- If `fromMsb = true`, the search begins from the most significant bit (MSB).
-- If `fromMsb = false`, the search begins from the least significant bit (LSB).
+- If `fromMsb = true`, the search begins from the most significant bit (MSB, bit with highest index).
+- If `fromMsb = false`, the search begins from the least significant bit (LS, bit with lowest index).
 
 If no bits are set:
 
