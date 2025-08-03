@@ -150,6 +150,41 @@ direction of transfers.
 
 ![Architecture](./master/olo_axi_master_simple.svg)
 
+### Write Logic
+
+Below figure gives an overview over the different components involved in the write logic.
+
+![Write Logic](./master/olo_axi_master_simple_write_logic.svg)
+
+The individual components and their responsibilities are described below.
+
+- The _WriteTfGen FSM_ splits arbitrarily sized user transactions into AXI transactions, which do not
+  exceed the maximum burst size or cross 4kB boundaries.
+- The _AW FSM_ does transmit those transactions through the AXI AW channel.
+- The _wr_trans FIFO_ does store the number of beats in each transaction for a number of open transactions.
+- The _W FSM_ does transmit data packets (size of each packet given by _wr_trans FIFO_) through the AXI W channel.
+- The _wr_resp FIFO_ holds one entry for each AW/W transaction and the information if this is the last AXI transfer
+  related to a single user transaction.
+- The _WResp Handling_ does signal to the user that the complete user transaction was done after the last AXI
+  transaction related to the user transaction was signalled completed through the AXI B channel.
+
+### Read Logic
+
+Below figure gives an overview over the different components involved in the read logic.
+
+![Read Logic](./master/olo_axi_master_simple_read_logic.svg)
+
+The individual components and their responsibilities are described below.
+
+- The _ReadTfGen FSM_ splits arbitrarily sized user transactions into AXI transactions, which do not exceed the
+  maximum burst size or cross 4kB boundaries.
+- The _AR FSM_ does transmit those transactions through the AXI AR channel.
+- The _rd_resp FIFO_ holds one entry for each AR/RRESP transaction and the information if this is the last AXI
+  transfer related to a single user transaction.
+- The _RRESP HAndling_ does signal to the user that the complete user transaction was done after the last AXI
+  transaction related to the user transaction was signalled completed through the AXI RRESP channel.
+- The _rd_data FIFO_ does buffer read data plus the _Last_ flag for the last transaction belonging to a user transaction
+
 ### Transaction Types
 
 For simplicity, only burst transactions are shown. However also single-word transactions are supported.
