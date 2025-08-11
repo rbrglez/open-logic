@@ -9,7 +9,7 @@ namespace eval olo_base_constraints_amd {
 	read_xdc -quiet -ref olo_base_cc_bits $fileLoc/olo_base_cc_bits.tcl
 	read_xdc -quiet -ref olo_base_cc_simple $fileLoc/olo_base_cc_simple.tcl
 	read_xdc -quiet -ref olo_base_reset_gen $fileLoc/olo_base_reset_gen.tcl
-	read_xdc -quiet -ref olo_base_ram_sdp $fileLoc/olo_base_ram_sdp.tcl
+	read_xdc -quiet -ref olo_base_ram_sdp $fileLoc/olo_base_ram_sdp.tcl -unmanaged
 
 	set_property used_in_synthesis false [get_files $fileLoc/olo_base_cc_reset.tcl]
 	set_property used_in_synthesis false [get_files $fileLoc/olo_base_cc_bits.tcl]
