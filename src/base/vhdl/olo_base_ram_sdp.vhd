@@ -256,6 +256,9 @@ architecture rtl of olo_private_ram_sdp_nobe is
     -- Read registers
     signal RdPipe : Data_t(1 to RdLatency_g);
 
+    -- Synthesis attributes - Without this attribute the scoped constraint can't find this signal
+    attribute dont_touch of RdPipe : signal is true;
+
     -- Synthesis attributes - suppress shift register extraction
     attribute shreg_extract of RdPipe : signal is ShregExtract_SuppressExtraction_c;
 
