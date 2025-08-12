@@ -1,0 +1,19 @@
+CAPI=2:
+
+name : "open-logic:open-logic-dev:scoped-constraints:4.0.0"
+description : "Scoped Constraints"
+
+filesets:
+  scoped_constraints:
+    depend:
+      - "open-logic:open-logic-dev:base-constraints:4.0.0"
+      - "open-logic:open-logic-dev:intf-constraints:4.0.0"
+    files:
+      - "all_constraints_amd.tcl"  : {copyto: "tools/vivado/all_constraints_amd.tcl"}
+      - "fusesoc_import_constraints.tcl"  : {copyto: "tools/vivado/fusesoc_import_constraints.tcl", file_type: "tclSource"}
+    file_type: "user"
+
+targets:
+  default:
+    filesets :
+      - "scoped_constraints"

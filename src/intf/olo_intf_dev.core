@@ -25,10 +25,14 @@ filesets:
       - "tcl/olo_intf_constraints_amd.tcl"  : {copyto: "intf/olo_intf_constraints_amd.tcl", file_type: "tclSource"}
     file_type: "user"
 
+  scoped_constraints_core:
+    depend:
+      - "^open-logic:open-logic-dev:scoped-constraints:4.0.0"
 
 targets:
   default:
     filesets :
       - "rtl"
-      - "tool_vivado? (scoped_constraints)"
+      #- "tool_vivado? (scoped_constraints)"
+      - "tool_vivado? (scoped_constraints_core)"
   
