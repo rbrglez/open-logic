@@ -38,12 +38,13 @@ entity olo_base_arb_wrr is
         Latency_g     : natural range 0 to 1 := 0
     );
     port (
+        -- Control Interface
         Clk        : in    std_logic;
         Rst        : in    std_logic;
+        Weights    : in    std_logic_vector(WeightWidth_g*GrantWidth_g-1 downto 0);
 
         -- Request Interface
         In_Valid   : in    std_logic;
-        In_Weights : in    std_logic_vector(WeightWidth_g*GrantWidth_g-1 downto 0);
         In_Req     : in    std_logic_vector(GrantWidth_g-1 downto 0);
 
         -- Grant Interface
@@ -59,15 +60,15 @@ architecture rtl of olo_base_arb_wrr is
     -- Each bit is set to '1' if the corresponding weight is not zero, otherwise it is '0'.
     -- Effectively masks out requests with zero weight.
     function generateRequestWeightsMask (
-        Weights     : std_logic_vector;
-        WeightWidth : positive;
-        GrantWidth  : positive) return std_logic_vector is
+        WeightsParam     : std_logic_vector;
+        WeightWidthParam : positive;
+        GrantWidthParam  : positive) return std_logic_vector is
         -- Variables
-        variable RequestWeightsMask_v : std_logic_vector(GrantWidth-1 downto 0);
+        variable RequestWeightsMask_v : std_logic_vector(GrantWidthParam-1 downto 0);
     begin
 
-        for i in (GrantWidth-1) downto 0 loop
-            if (unsigned(Weights((i+1)*WeightWidth-1 downto i*WeightWidth)) /= 0) then
+        for i in (GrantWidthParam-1) downto 0 loop
+            if (unsigned(WeightsParam((i+1)*WeightWidthParam-1 downto i*WeightWidthParam)) /= 0) then
                 RequestWeightsMask_v(i) := '1';
             else
                 RequestWeightsMask_v(i) := '0';
@@ -97,7 +98,7 @@ architecture rtl of olo_base_arb_wrr is
 
 begin
 
-    RrReq <= In_Req and generateRequestWeightsMask(In_Weights, WeightWidth_g, GrantWidth_g);
+    RrReq <= In_Req and generateRequestWeightsMask(Weights, WeightWidth_g, GrantWidth_g);
 
     -- *** Component Instantiations ***
     i_arb_rr : entity work.olo_base_arb_rr
@@ -128,7 +129,7 @@ begin
 
         -- Detect switchover to new requester
         if In_Valid = '1' then
-            v.Weights := In_Weights;
+            v.Weights := Weights;
         end if;
 
         -- Switchover detection
