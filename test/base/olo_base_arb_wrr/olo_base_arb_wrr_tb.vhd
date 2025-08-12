@@ -68,20 +68,20 @@ architecture sim of olo_base_arb_wrr_tb is
     constant In_Data_WeightsLowIdx_c  : integer := 0;
 
     constant AxisMaster_c : axi_stream_master_t := new_axi_stream_master (
-            data_length  => TotalInBits_c,
+            data_length  => GrantWidth_c,
             stall_config => new_stall_config(choose(RandomStall_g, 0.5, 0.0), 5, 10)
         );
 
     -----------------------------------------------------------------------------------------------
     -- Interface Signals
     -----------------------------------------------------------------------------------------------
-    signal Clk        : std_logic                                   := '0';
-    signal Rst        : std_logic                                   := '1';
-    signal In_Valid   : std_logic;
-    signal In_Weights : std_logic_vector(WeightWidth_c * GrantWidth_c - 1 downto 0);
-    signal In_Req     : std_logic_vector(GrantWidth_c - 1 downto 0);
-    signal Out_Valid  : std_logic                                   := '0';
-    signal Out_Grant  : std_logic_vector(GrantWidth_c - 1 downto 0) := (others => '0');
+    signal Clk       : std_logic                                   := '0';
+    signal Rst       : std_logic                                   := '1';
+    signal Weights   : std_logic_vector(WeightWidth_c * GrantWidth_c - 1 downto 0);
+    signal In_Valid  : std_logic;
+    signal In_Req    : std_logic_vector(GrantWidth_c - 1 downto 0);
+    signal Out_Valid : std_logic                                   := '0';
+    signal Out_Grant : std_logic_vector(GrantWidth_c - 1 downto 0) := (others => '0');
 
     -----------------------------------------------------------------------------------------------
     -- TB Definitions
@@ -104,27 +104,12 @@ architecture sim of olo_base_arb_wrr_tb is
     -- Writes Weights and Request to DUT and compares received Grant with the ExpectedGrant
     procedure testSample (
         signal net    : inout network_t;
-        Weights       : in    IntegerArray_t;
         Request       : in    std_logic_vector;
         ExpectedGrant : in    std_logic_vector;
         Check         : in    boolean := true;
         Msg           : in    string  := "") is
-        variable WeightsStdlv_v         : std_logic_vector(WeightWidth_c * GrantWidth_c - 1 downto 0);
-        variable WeightsDescendingArr_v : IntegerArray_t(Weights'high downto Weights'low);
     begin
-        -- Ensures IntegerArray has a descending range and reverses it if necessary
-        if (Weights'ascending) then
-
-            for i in Weights'range loop
-                WeightsDescendingArr_v(i) := Weights(Weights'right - i);
-            end loop;
-
-        else
-            WeightsDescendingArr_v := Weights;
-        end if;
-        WeightsStdlv_v := integerArray2Slv(WeightsDescendingArr_v, WeightWidth_c);
-
-        push_axi_stream(net, AxisMaster_c, Request & WeightsStdlv_v);
+        push_axi_stream(net, AxisMaster_c, Request);
 
         -- Option to disable AXI stream checking, useful for development and debugging
         if Check then
@@ -146,8 +131,8 @@ begin
         port map (
             Clk        => Clk,
             Rst        => Rst,
+            Weights    => Weights,
             In_Valid   => In_Valid,
-            In_Weights => In_Weights,
             In_Req     => In_Req,
             Out_Valid  => Out_Valid,
             Out_Grant  => Out_Grant
@@ -156,9 +141,6 @@ begin
     -----------------------------------------------------------------------------------------------
     -- Verification Components
     -----------------------------------------------------------------------------------------------
-    In_Req     <= In_Data(In_Data_ReqHighIdx_c downto In_Data_ReqLowIdx_c);
-    In_Weights <= In_Data(In_Data_WeightsHighIdx_c downto In_Data_WeightsLowIdx_c);
-
     vc_master : entity vunit_lib.axi_stream_master
         generic map (
             Master => AxisMaster_c
@@ -166,7 +148,7 @@ begin
         port map (
             Aclk   => Clk,
             Tvalid => In_Valid,
-            Tdata  => In_Data
+            Tdata  => In_Req
         );
 
     vc_slave : entity vunit_lib.axi_stream_slave
@@ -190,8 +172,8 @@ begin
     test_runner_watchdog(runner, 1 ms);
 
     p_control : process is
-        variable In_Req_v          : std_logic_vector(In_Req'range);
-        variable In_WeightsArray_v : IntegerArray_t(GrantWidth_c - 1 downto 0);
+        variable In_Req_v       : std_logic_vector(In_Req'range);
+        variable WeightsArray_v : StlvArray_t(GrantWidth_c - 1 downto 0)(WeightWidth_c - 1 downto 0);
     begin
         test_runner_setup(runner, runner_cfg);
 
@@ -206,14 +188,15 @@ begin
             --------------------------------------------------------------------
             if run("Static_AllHighReq_RoundRobinWeights") then
 
-                In_WeightsArray_v := (others => 1);
+                WeightsArray_v := (others => x"1");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
                 for i in 0 to 2 - 1 loop
-                    testSample(net, In_WeightsArray_v, "11111", "10000");
-                    testSample(net, In_WeightsArray_v, "11111", "01000");
-                    testSample(net, In_WeightsArray_v, "11111", "00100");
-                    testSample(net, In_WeightsArray_v, "11111", "00010");
-                    testSample(net, In_WeightsArray_v, "11111", "00001");
+                    testSample(net, "11111", "10000");
+                    testSample(net, "11111", "01000");
+                    testSample(net, "11111", "00100");
+                    testSample(net, "11111", "00010");
+                    testSample(net, "11111", "00001");
                 end loop;
 
             end if;
@@ -222,12 +205,13 @@ begin
             --------------------------------------------------------------------
             if run("Static_AllHighReq_ZeroWeights") then
 
-                In_WeightsArray_v := (others => 0);
+                WeightsArray_v := (others => x"0");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                testSample(net, In_WeightsArray_v, "11111", "00000");
-                testSample(net, In_WeightsArray_v, "11111", "00000");
-                testSample(net, In_WeightsArray_v, "11111", "00000");
-                testSample(net, In_WeightsArray_v, "11111", "00000");
+                testSample(net, "11111", "00000");
+                testSample(net, "11111", "00000");
+                testSample(net, "11111", "00000");
+                testSample(net, "11111", "00000");
 
             end if;
 
@@ -235,30 +219,31 @@ begin
             --------------------------------------------------------------------
             if run("Static_AllHighReq_RandomNonZeroWeights") then
 
-                In_WeightsArray_v := (4,
-                                      1,
-                                      1,
-                                      4,
-                                      3);
+                WeightsArray_v := (x"4",
+                                   x"1",
+                                   x"1",
+                                   x"4",
+                                   x"3");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
                 for i in 0 to 2 - 1 loop
-                    testSample(net, In_WeightsArray_v, "11111", "10000", Msg => "0");
-                    testSample(net, In_WeightsArray_v, "11111", "10000", Msg => "1");
-                    testSample(net, In_WeightsArray_v, "11111", "10000", Msg => "2");
-                    testSample(net, In_WeightsArray_v, "11111", "10000", Msg => "3");
+                    testSample(net, "11111", "10000", Msg => "0");
+                    testSample(net, "11111", "10000", Msg => "1");
+                    testSample(net, "11111", "10000", Msg => "2");
+                    testSample(net, "11111", "10000", Msg => "3");
 
-                    testSample(net, In_WeightsArray_v, "11111", "01000", Msg => "4");
+                    testSample(net, "11111", "01000", Msg => "4");
 
-                    testSample(net, In_WeightsArray_v, "11111", "00100", Msg => "5");
+                    testSample(net, "11111", "00100", Msg => "5");
 
-                    testSample(net, In_WeightsArray_v, "11111", "00010", Msg => "6");
-                    testSample(net, In_WeightsArray_v, "11111", "00010", Msg => "7");
-                    testSample(net, In_WeightsArray_v, "11111", "00010", Msg => "8");
-                    testSample(net, In_WeightsArray_v, "11111", "00010", Msg => "9");
+                    testSample(net, "11111", "00010", Msg => "6");
+                    testSample(net, "11111", "00010", Msg => "7");
+                    testSample(net, "11111", "00010", Msg => "8");
+                    testSample(net, "11111", "00010", Msg => "9");
 
-                    testSample(net, In_WeightsArray_v, "11111", "00001", Msg => "10");
-                    testSample(net, In_WeightsArray_v, "11111", "00001", Msg => "11");
-                    testSample(net, In_WeightsArray_v, "11111", "00001", Msg => "12");
+                    testSample(net, "11111", "00001", Msg => "10");
+                    testSample(net, "11111", "00001", Msg => "11");
+                    testSample(net, "11111", "00001", Msg => "12");
                 end loop;
 
             end if;
@@ -267,21 +252,22 @@ begin
             --------------------------------------------------------------------
             if run("Static_AllHighReq_RandomWeights") then
 
-                In_WeightsArray_v := (1,
-                                      0,
-                                      2,
-                                      3,
-                                      0);
+                WeightsArray_v := (x"1",
+                                   x"0",
+                                   x"2",
+                                   x"3",
+                                   x"0");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
                 for i in 0 to 2 - 1 loop
-                    testSample(net, In_WeightsArray_v, "11111", "10000", Msg => "0");
+                    testSample(net, "11111", "10000", Msg => "0");
 
-                    testSample(net, In_WeightsArray_v, "11111", "00100", Msg => "1");
-                    testSample(net, In_WeightsArray_v, "11111", "00100", Msg => "2");
+                    testSample(net, "11111", "00100", Msg => "1");
+                    testSample(net, "11111", "00100", Msg => "2");
 
-                    testSample(net, In_WeightsArray_v, "11111", "00010", Msg => "3");
-                    testSample(net, In_WeightsArray_v, "11111", "00010", Msg => "4");
-                    testSample(net, In_WeightsArray_v, "11111", "00010", Msg => "5");
+                    testSample(net, "11111", "00010", Msg => "3");
+                    testSample(net, "11111", "00010", Msg => "4");
+                    testSample(net, "11111", "00010", Msg => "5");
                 end loop;
 
             end if;
@@ -290,16 +276,17 @@ begin
             --------------------------------------------------------------------
             if run("Static_AllLowReq_RandomNonZeroWeights") then
 
-                In_WeightsArray_v := (1,
-                                      4,
-                                      3,
-                                      4,
-                                      4);
+                WeightsArray_v := (x"1",
+                                   x"4",
+                                   x"3",
+                                   x"4",
+                                   x"4");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                testSample(net, In_WeightsArray_v, "00000", "00000");
-                testSample(net, In_WeightsArray_v, "00000", "00000");
-                testSample(net, In_WeightsArray_v, "00000", "00000");
-                testSample(net, In_WeightsArray_v, "00000", "00000");
+                testSample(net, "00000", "00000");
+                testSample(net, "00000", "00000");
+                testSample(net, "00000", "00000");
+                testSample(net, "00000", "00000");
 
             end if;
 
@@ -307,21 +294,22 @@ begin
             --------------------------------------------------------------------
             if run("Static_RandomNonZeroReq_RandomNonZeroWeights") then
 
-                In_WeightsArray_v := (3,
-                                      3,
-                                      1,
-                                      4,
-                                      3);
+                WeightsArray_v := (x"3",
+                                   x"3",
+                                   x"1",
+                                   x"4",
+                                   x"3");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
                 for i in 0 to 2 - 1 loop
-                    testSample(net, In_WeightsArray_v, "10010", "10000");
-                    testSample(net, In_WeightsArray_v, "10010", "10000");
-                    testSample(net, In_WeightsArray_v, "10010", "10000");
+                    testSample(net, "10010", "10000");
+                    testSample(net, "10010", "10000");
+                    testSample(net, "10010", "10000");
 
-                    testSample(net, In_WeightsArray_v, "10010", "00010");
-                    testSample(net, In_WeightsArray_v, "10010", "00010");
-                    testSample(net, In_WeightsArray_v, "10010", "00010");
-                    testSample(net, In_WeightsArray_v, "10010", "00010");
+                    testSample(net, "10010", "00010");
+                    testSample(net, "10010", "00010");
+                    testSample(net, "10010", "00010");
+                    testSample(net, "10010", "00010");
                 end loop;
 
             end if;
@@ -330,24 +318,25 @@ begin
             --------------------------------------------------------------------
             if run("Static_RandomReq_RandomWeights") then
 
-                In_WeightsArray_v := (3,
-                                      4,
-                                      3,
-                                      0,
-                                      2);
+                WeightsArray_v := (x"3",
+                                   x"4",
+                                   x"3",
+                                   x"0",
+                                   x"2");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
                 for i in 0 to 2 - 1 loop
-                    testSample(net, In_WeightsArray_v, "11011", "10000");
-                    testSample(net, In_WeightsArray_v, "11011", "10000");
-                    testSample(net, In_WeightsArray_v, "11011", "10000");
+                    testSample(net, "11011", "10000");
+                    testSample(net, "11011", "10000");
+                    testSample(net, "11011", "10000");
 
-                    testSample(net, In_WeightsArray_v, "11011", "01000");
-                    testSample(net, In_WeightsArray_v, "11011", "01000");
-                    testSample(net, In_WeightsArray_v, "11011", "01000");
-                    testSample(net, In_WeightsArray_v, "11011", "01000");
+                    testSample(net, "11011", "01000");
+                    testSample(net, "11011", "01000");
+                    testSample(net, "11011", "01000");
+                    testSample(net, "11011", "01000");
 
-                    testSample(net, In_WeightsArray_v, "11011", "00001");
-                    testSample(net, In_WeightsArray_v, "11011", "00001");
+                    testSample(net, "11011", "00001");
+                    testSample(net, "11011", "00001");
                 end loop;
 
             end if;
@@ -357,54 +346,63 @@ begin
             if run("SemiStatic_RandomNonZeroReq_RandomNonZeroWeights") then
 
                 -- First "Complete Grant Cycle"
-                In_WeightsArray_v := (1,
-                                      4,
-                                      3,
-                                      3,
-                                      1);
+                WeightsArray_v := (x"1",
+                                   x"4",
+                                   x"3",
+                                   x"3",
+                                   x"1");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                testSample(net, In_WeightsArray_v, "10111", "10000");
+                testSample(net, "10111", "10000");
 
-                testSample(net, In_WeightsArray_v, "10111", "00100");
-                testSample(net, In_WeightsArray_v, "10111", "00100");
-                testSample(net, In_WeightsArray_v, "10111", "00100");
+                testSample(net, "10111", "00100");
+                testSample(net, "10111", "00100");
+                testSample(net, "10111", "00100");
 
-                testSample(net, In_WeightsArray_v, "10111", "00010");
-                testSample(net, In_WeightsArray_v, "10111", "00010");
-                testSample(net, In_WeightsArray_v, "10111", "00010");
+                testSample(net, "10111", "00010");
+                testSample(net, "10111", "00010");
+                testSample(net, "10111", "00010");
 
-                testSample(net, In_WeightsArray_v, "10111", "00001");
+                testSample(net, "10111", "00001");
+
+                wait_until_idle(net, as_sync(AxisMaster_c));
+                wait_until_idle(net, as_sync(AxisSlave_c));
 
                 -- Second "Complete Grant Cycle"
-                In_WeightsArray_v := (4,
-                                      3,
-                                      1,
-                                      4,
-                                      1);
+                WeightsArray_v := (x"4",
+                                   x"3",
+                                   x"1",
+                                   x"4",
+                                   x"1");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                testSample(net, In_WeightsArray_v, "11100", "10000");
-                testSample(net, In_WeightsArray_v, "11100", "10000");
-                testSample(net, In_WeightsArray_v, "11100", "10000");
-                testSample(net, In_WeightsArray_v, "11100", "10000");
+                testSample(net, "11100", "10000");
+                testSample(net, "11100", "10000");
+                testSample(net, "11100", "10000");
+                testSample(net, "11100", "10000");
 
-                testSample(net, In_WeightsArray_v, "11100", "01000");
-                testSample(net, In_WeightsArray_v, "11100", "01000");
-                testSample(net, In_WeightsArray_v, "11100", "01000");
+                testSample(net, "11100", "01000");
+                testSample(net, "11100", "01000");
+                testSample(net, "11100", "01000");
 
-                testSample(net, In_WeightsArray_v, "11100", "00100");
+                testSample(net, "11100", "00100");
+
+                wait_until_idle(net, as_sync(AxisMaster_c));
+                wait_until_idle(net, as_sync(AxisSlave_c));
 
                 -- Third "Complete Grant Cycle"
-                In_WeightsArray_v := (4,
-                                      1,
-                                      3,
-                                      2,
-                                      1);
+                WeightsArray_v := (x"4",
+                                   x"1",
+                                   x"3",
+                                   x"2",
+                                   x"1");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                testSample(net, In_WeightsArray_v, "01100", "01000");
+                testSample(net, "01100", "01000");
 
-                testSample(net, In_WeightsArray_v, "01100", "00100");
-                testSample(net, In_WeightsArray_v, "01100", "00100");
-                testSample(net, In_WeightsArray_v, "01100", "00100");
+                testSample(net, "01100", "00100");
+                testSample(net, "01100", "00100");
+                testSample(net, "01100", "00100");
             end if;
 
             --------------------------------------------------------------------
@@ -412,43 +410,52 @@ begin
             if run("SemiStatic_RandomReq_RandomWeights") then
 
                 -- First "Complete Grant Cycle"
-                In_WeightsArray_v := (0,
-                                      2,
-                                      1,
-                                      4,
-                                      3);
+                WeightsArray_v := (x"0",
+                                   x"2",
+                                   x"1",
+                                   x"4",
+                                   x"3");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                testSample(net, In_WeightsArray_v, "11001", "01000");
-                testSample(net, In_WeightsArray_v, "11001", "01000");
+                testSample(net, "11001", "01000");
+                testSample(net, "11001", "01000");
 
-                testSample(net, In_WeightsArray_v, "11001", "00001");
-                testSample(net, In_WeightsArray_v, "11001", "00001");
-                testSample(net, In_WeightsArray_v, "11001", "00001");
+                testSample(net, "11001", "00001");
+                testSample(net, "11001", "00001");
+                testSample(net, "11001", "00001");
+
+                wait_until_idle(net, as_sync(AxisMaster_c));
+                wait_until_idle(net, as_sync(AxisSlave_c));
 
                 -- Second "Complete Grant Cycle"
-                In_WeightsArray_v := (2,
-                                      3,
-                                      0,
-                                      3,
-                                      1);
+                WeightsArray_v := (x"2",
+                                   x"3",
+                                   x"0",
+                                   x"3",
+                                   x"1");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                testSample(net, In_WeightsArray_v, "00100", "00000");
-                testSample(net, In_WeightsArray_v, "00100", "00000");
-                testSample(net, In_WeightsArray_v, "00100", "00000");
-                testSample(net, In_WeightsArray_v, "00100", "00000");
+                testSample(net, "00100", "00000");
+                testSample(net, "00100", "00000");
+                testSample(net, "00100", "00000");
+                testSample(net, "00100", "00000");
+
+                wait_until_idle(net, as_sync(AxisMaster_c));
+                wait_until_idle(net, as_sync(AxisSlave_c));
 
                 -- Third "Complete Grant Cycle"
-                In_WeightsArray_v := (0,
-                                      0,
-                                      0,
-                                      0,
-                                      0);
+                WeightsArray_v := (x"0",
+                                   x"0",
+                                   x"0",
+                                   x"0",
+                                   x"0");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                testSample(net, In_WeightsArray_v, "01101", "00000");
-                testSample(net, In_WeightsArray_v, "01101", "00000");
-                testSample(net, In_WeightsArray_v, "01101", "00000");
-                testSample(net, In_WeightsArray_v, "01101", "00000");
-                testSample(net, In_WeightsArray_v, "01101", "00000");
+                testSample(net, "01101", "00000");
+                testSample(net, "01101", "00000");
+                testSample(net, "01101", "00000");
+                testSample(net, "01101", "00000");
+                testSample(net, "01101", "00000");
 
             end if;
 
@@ -456,174 +463,134 @@ begin
             --------------------------------------------------------------------
             if run("Dynamic_RandomReq_RandomNonZeroWeights") then
 
-                In_WeightsArray_v := (2,
-                                      1,
-                                      3,
-                                      2,
-                                      1);
-                testSample(net, In_WeightsArray_v, "10101", "10000", Msg => "0");
-                testSample(net, In_WeightsArray_v, "00010", "00010", Msg => "1");
-                testSample(net, In_WeightsArray_v, "01100", "01000", Msg => "2");
-                testSample(net, In_WeightsArray_v, "11011", "00010", Msg => "3");
-                testSample(net, In_WeightsArray_v, "00010", "00010", Msg => "4");
-                testSample(net, In_WeightsArray_v, "11101", "00001", Msg => "5");
-                testSample(net, In_WeightsArray_v, "01011", "01000", Msg => "6");
-                testSample(net, In_WeightsArray_v, "10000", "10000", Msg => "7");
-                testSample(net, In_WeightsArray_v, "00101", "00100", Msg => "8");
-                testSample(net, In_WeightsArray_v, "01111", "00100", Msg => "9");
-                testSample(net, In_WeightsArray_v, "10110", "00100", Msg => "10");
+                WeightsArray_v := (x"2",
+                                   x"1",
+                                   x"3",
+                                   x"2",
+                                   x"1");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                In_WeightsArray_v := (1,
-                                      3,
-                                      3,
-                                      4,
-                                      3);
-                testSample(net, In_WeightsArray_v, "11010", "00010", Msg => "11");
-                testSample(net, In_WeightsArray_v, "00111", "00010", Msg => "12");
-                testSample(net, In_WeightsArray_v, "10100", "10000", Msg => "13");
-                testSample(net, In_WeightsArray_v, "01101", "01000", Msg => "14");
-                testSample(net, In_WeightsArray_v, "00011", "00010", Msg => "15");
-                testSample(net, In_WeightsArray_v, "11100", "10000", Msg => "16");
-                testSample(net, In_WeightsArray_v, "01010", "01000", Msg => "17");
-                testSample(net, In_WeightsArray_v, "10011", "00010", Msg => "18");
-                testSample(net, In_WeightsArray_v, "00100", "00100", Msg => "19");
-                testSample(net, In_WeightsArray_v, "11001", "00001", Msg => "20");
+                testSample(net, "10101", "10000", Msg => "0");
+                testSample(net, "00010", "00010", Msg => "1");
+                testSample(net, "01100", "01000", Msg => "2");
+                testSample(net, "11011", "00010", Msg => "3");
+                testSample(net, "00010", "00010", Msg => "4");
+                testSample(net, "11101", "00001", Msg => "5");
+                testSample(net, "01011", "01000", Msg => "6");
+                testSample(net, "10000", "10000", Msg => "7");
+                testSample(net, "00101", "00100", Msg => "8");
+                testSample(net, "01111", "00100", Msg => "9");
+                testSample(net, "10110", "00100", Msg => "10");
 
-                In_WeightsArray_v := (1,
-                                      1,
-                                      4,
-                                      1,
-                                      1);
-                testSample(net, In_WeightsArray_v, "00101", "00001", Msg => "21"); -- "00100" or "00001", both OK
-                testSample(net, In_WeightsArray_v, "11000", "10000", Msg => "22");
-                testSample(net, In_WeightsArray_v, "11110", "01000", Msg => "23");
-                testSample(net, In_WeightsArray_v, "00110", "00100", Msg => "24");
-                testSample(net, In_WeightsArray_v, "10011", "00010", Msg => "25");
-                testSample(net, In_WeightsArray_v, "01010", "01000", Msg => "26");
-                testSample(net, In_WeightsArray_v, "11111", "00100", Msg => "27");
-                testSample(net, In_WeightsArray_v, "00001", "00001", Msg => "28");
-                testSample(net, In_WeightsArray_v, "10010", "10000", Msg => "29");
-                testSample(net, In_WeightsArray_v, "01101", "01000", Msg => "30");
-                testSample(net, In_WeightsArray_v, "01111", "00100", Msg => "31");
-                testSample(net, In_WeightsArray_v, "11011", "00010", Msg => "32");
-                testSample(net, In_WeightsArray_v, "01001", "00001", Msg => "33");
+                wait_until_idle(net, as_sync(AxisMaster_c));
+                wait_until_idle(net, as_sync(AxisSlave_c));
 
-                In_WeightsArray_v := (3,
-                                      1,
-                                      2,
-                                      3,
-                                      1);
-                testSample(net, In_WeightsArray_v, "10100", "10000", Msg => "34");
-                testSample(net, In_WeightsArray_v, "01001", "01000", Msg => "35");
-                testSample(net, In_WeightsArray_v, "11100", "00100", Msg => "36");
-                testSample(net, In_WeightsArray_v, "00011", "00010", Msg => "37");
-                testSample(net, In_WeightsArray_v, "00100", "00100", Msg => "38");
-                testSample(net, In_WeightsArray_v, "11010", "00010", Msg => "39");
-                testSample(net, In_WeightsArray_v, "01110", "00010", Msg => "40");
-                testSample(net, In_WeightsArray_v, "10001", "00001", Msg => "41");
-                testSample(net, In_WeightsArray_v, "00111", "00100", Msg => "42");
-                testSample(net, In_WeightsArray_v, "01000", "01000", Msg => "43");
-                testSample(net, In_WeightsArray_v, "11111", "00100", Msg => "44");
-                testSample(net, In_WeightsArray_v, "10101", "00100", Msg => "45");
-                testSample(net, In_WeightsArray_v, "00100", "00100", Msg => "46");
-                testSample(net, In_WeightsArray_v, "10010", "00010", Msg => "47");
-                testSample(net, In_WeightsArray_v, "11001", "00001", Msg => "48");
-                testSample(net, In_WeightsArray_v, "01101", "01000", Msg => "49");
-                testSample(net, In_WeightsArray_v, "10111", "00100", Msg => "50");
-                testSample(net, In_WeightsArray_v, "00110", "00100", Msg => "51");
-                testSample(net, In_WeightsArray_v, "10110", "00010", Msg => "52");
-                testSample(net, In_WeightsArray_v, "01011", "00010", Msg => "53");
-                testSample(net, In_WeightsArray_v, "11111", "00010", Msg => "54");
+                WeightsArray_v := (x"1",
+                                   x"3",
+                                   x"3",
+                                   x"4",
+                                   x"3");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                In_WeightsArray_v := (2,
-                                      4,
-                                      1,
-                                      3,
-                                      2);
-                testSample(net, In_WeightsArray_v, "00000", "00000", Msg => "55");
-                testSample(net, In_WeightsArray_v, "00110", "00100", Msg => "56");
-                testSample(net, In_WeightsArray_v, "00000", "00000", Msg => "57");
-                testSample(net, In_WeightsArray_v, "01101", "00001", Msg => "58");
-                testSample(net, In_WeightsArray_v, "11100", "10000", Msg => "59");
-                testSample(net, In_WeightsArray_v, "01010", "01000", Msg => "60");
-                testSample(net, In_WeightsArray_v, "11101", "01000", Msg => "61");
-                testSample(net, In_WeightsArray_v, "11011", "01000", Msg => "62");
-                testSample(net, In_WeightsArray_v, "11001", "01000", Msg => "63");
-                testSample(net, In_WeightsArray_v, "01100", "00100", Msg => "64");
-                testSample(net, In_WeightsArray_v, "00011", "00010", Msg => "65");
-                testSample(net, In_WeightsArray_v, "10101", "00001", Msg => "66");
-                testSample(net, In_WeightsArray_v, "11010", "10000", Msg => "67");
-                testSample(net, In_WeightsArray_v, "00110", "00100", Msg => "68");
-                testSample(net, In_WeightsArray_v, "11111", "00010", Msg => "69");
-                testSample(net, In_WeightsArray_v, "10000", "10000", Msg => "70");
-                testSample(net, In_WeightsArray_v, "01001", "01000", Msg => "71");
-                testSample(net, In_WeightsArray_v, "00000", "00000", Msg => "72");
-                testSample(net, In_WeightsArray_v, "11101", "00100", Msg => "73");
-                testSample(net, In_WeightsArray_v, "00000", "00000", Msg => "74");
-                testSample(net, In_WeightsArray_v, "00000", "00000", Msg => "75");
-                testSample(net, In_WeightsArray_v, "01010", "00010", Msg => "76");
+                testSample(net, "11010", "00010", Msg => "11");
+                testSample(net, "00111", "00010", Msg => "12");
+                testSample(net, "10100", "10000", Msg => "13");
+                testSample(net, "01101", "01000", Msg => "14");
+                testSample(net, "00011", "00010", Msg => "15");
+                testSample(net, "11100", "10000", Msg => "16");
+                testSample(net, "01010", "01000", Msg => "17");
+                testSample(net, "10011", "00010", Msg => "18");
+                testSample(net, "00100", "00100", Msg => "19");
+                testSample(net, "11001", "00001", Msg => "20");
 
-            end if;
+                wait_until_idle(net, as_sync(AxisMaster_c));
+                wait_until_idle(net, as_sync(AxisSlave_c));
 
-            --------------------------------------------------------------------
-            --------------------------------------------------------------------
-            if run("Dynamic_AllHighReq_RandomNonZeroWeights") then
+                WeightsArray_v := (x"1",
+                                   x"1",
+                                   x"4",
+                                   x"1",
+                                   x"1");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-                In_Req_v := (others => '1');
+                testSample(net, "00101", "00001", Msg => "21"); -- "00100" or "00001", both OK
+                testSample(net, "11000", "10000", Msg => "22");
+                testSample(net, "11110", "01000", Msg => "23");
+                testSample(net, "00110", "00100", Msg => "24");
+                testSample(net, "10011", "00010", Msg => "25");
+                testSample(net, "01010", "01000", Msg => "26");
+                testSample(net, "11111", "00100", Msg => "27");
+                testSample(net, "00001", "00001", Msg => "28");
+                testSample(net, "10010", "10000", Msg => "29");
+                testSample(net, "01101", "01000", Msg => "30");
+                testSample(net, "01111", "00100", Msg => "31");
+                testSample(net, "11011", "00010", Msg => "32");
+                testSample(net, "01001", "00001", Msg => "33");
 
-                testSample(net, (4,1,3,2,2), In_Req_v, "10000", Msg => "0");
-                testSample(net, (3,1,4,3,2), In_Req_v, "10000", Msg => "1");
-                testSample(net, (2,3,4,4,1), In_Req_v, "10000", Msg => "2");
-                testSample(net, (1,2,3,1,2), In_Req_v, "01000", Msg => "3");
-                testSample(net, (2,4,1,3,3), In_Req_v, "01000", Msg => "4");
-                testSample(net, (1,1,2,4,4), In_Req_v, "01000", Msg => "5");
-                testSample(net, (3,3,2,1,2), In_Req_v, "00100", Msg => "6");
-                testSample(net, (4,2,1,3,1), In_Req_v, "00100", Msg => "7");
-                testSample(net, (2,2,3,4,4), In_Req_v, "00010", Msg => "8");
-                testSample(net, (3,4,2,1,3), In_Req_v, "00010", Msg => "9");
-                testSample(net, (1,3,4,2,2), In_Req_v, "00001", Msg => "10");
-                testSample(net, (2,1,3,4,1), In_Req_v, "00001", Msg => "11");
-                testSample(net, (4,4,1,2,3), In_Req_v, "10000", Msg => "12");
-                testSample(net, (1,2,4,3,3), In_Req_v, "10000", Msg => "13");
-                testSample(net, (3,1,2,2,4), In_Req_v, "01000", Msg => "14");
-                testSample(net, (2,3,1,4,1), In_Req_v, "00100", Msg => "15");
-                testSample(net, (4,3,2,1,3), In_Req_v, "00010", Msg => "16");
-                testSample(net, (1,1,3,2,4), In_Req_v, "00001", Msg => "17");
-                testSample(net, (2,4,4,1,2), In_Req_v, "00001", Msg => "18");
-                testSample(net, (3,2,1,4,3), In_Req_v, "10000", Msg => "19");
-                testSample(net, (4,2,3,3,1), In_Req_v, "10000", Msg => "20");
-                testSample(net, (1,3,2,2,4), In_Req_v, "10000", Msg => "21");
+                wait_until_idle(net, as_sync(AxisMaster_c));
+                wait_until_idle(net, as_sync(AxisSlave_c));
 
-            end if;
+                WeightsArray_v := (x"3",
+                                   x"1",
+                                   x"2",
+                                   x"3",
+                                   x"1");
+                Weights        <= flattenStlvArray(WeightsArray_v);
 
-            --------------------------------------------------------------------
-            --------------------------------------------------------------------
-            if run("Dynamic_AllHighReq_RandomWeights") then
+                testSample(net, "10100", "10000", Msg => "34");
+                testSample(net, "01001", "01000", Msg => "35");
+                testSample(net, "11100", "00100", Msg => "36");
+                testSample(net, "00011", "00010", Msg => "37");
+                testSample(net, "00100", "00100", Msg => "38");
+                testSample(net, "11010", "00010", Msg => "39");
+                testSample(net, "01110", "00010", Msg => "40");
+                testSample(net, "10001", "00001", Msg => "41");
+                testSample(net, "00111", "00100", Msg => "42");
+                testSample(net, "01000", "01000", Msg => "43");
+                testSample(net, "11111", "00100", Msg => "44");
+                testSample(net, "10101", "00100", Msg => "45");
+                testSample(net, "00100", "00100", Msg => "46");
+                testSample(net, "10010", "00010", Msg => "47");
+                testSample(net, "11001", "00001", Msg => "48");
+                testSample(net, "01101", "01000", Msg => "49");
+                testSample(net, "10111", "00100", Msg => "50");
+                testSample(net, "00110", "00100", Msg => "51");
+                testSample(net, "10110", "00010", Msg => "52");
+                testSample(net, "01011", "00010", Msg => "53");
+                testSample(net, "11111", "00010", Msg => "54");
 
-                In_Req_v := (others => '1');
+                wait_until_idle(net, as_sync(AxisMaster_c));
+                wait_until_idle(net, as_sync(AxisSlave_c));
 
-                testSample(net, (3,0,2,1,1), In_Req_v, "10000", Msg => "0");
-                testSample(net, (1,0,3,2,0), In_Req_v, "10000", Msg => "1");
-                testSample(net, (2,2,0,3,1), In_Req_v, "01000", Msg => "2");
-                testSample(net, (0,3,1,1,2), In_Req_v, "01000", Msg => "3");
-                testSample(net, (2,1,3,0,3), In_Req_v, "01000", Msg => "4");
-                testSample(net, (1,1,2,3,0), In_Req_v, "00100", Msg => "5");
-                testSample(net, (0,2,1,1,3), In_Req_v, "00100", Msg => "6");
-                testSample(net, (3,0,0,2,1), In_Req_v, "00010", Msg => "7");
-                testSample(net, (2,3,2,3,0), In_Req_v, "00010", Msg => "8");
-                testSample(net, (1,2,3,0,3), In_Req_v, "00010", Msg => "9");
-                testSample(net, (0,1,0,3,2), In_Req_v, "00001", Msg => "10");
-                testSample(net, (3,2,1,0,1), In_Req_v, "00001", Msg => "11");
-                testSample(net, (1,3,0,2,3), In_Req_v, "10000", Msg => "12");
-                testSample(net, (0,0,3,1,2), In_Req_v, "00100", Msg => "13");
-                testSample(net, (2,1,1,2,0), In_Req_v, "00100", Msg => "14");
-                testSample(net, (3,3,0,3,1), In_Req_v, "00010", Msg => "15");
-                testSample(net, (0,2,2,0,3), In_Req_v, "00010", Msg => "16");
-                testSample(net, (1,1,3,1,2), In_Req_v, "00001", Msg => "17");
-                testSample(net, (2,0,2,3,0), In_Req_v, "00001", Msg => "18");
-                testSample(net, (3,2,0,2,1), In_Req_v, "10000", Msg => "19");
-                testSample(net, (0,3,1,0,2), In_Req_v, "10000", Msg => "20");
-                testSample(net, (1,0,2,3,3), In_Req_v, "00100", Msg => "21");
+                WeightsArray_v := (x"2",
+                                   x"4",
+                                   x"1",
+                                   x"3",
+                                   x"2");
+                Weights        <= flattenStlvArray(WeightsArray_v);
+
+                testSample(net, "00000", "00000", Msg => "55");
+                testSample(net, "00110", "00100", Msg => "56");
+                testSample(net, "00000", "00000", Msg => "57");
+                testSample(net, "01101", "00001", Msg => "58");
+                testSample(net, "11100", "10000", Msg => "59");
+                testSample(net, "01010", "01000", Msg => "60");
+                testSample(net, "11101", "01000", Msg => "61");
+                testSample(net, "11011", "01000", Msg => "62");
+                testSample(net, "11001", "01000", Msg => "63");
+                testSample(net, "01100", "00100", Msg => "64");
+                testSample(net, "00011", "00010", Msg => "65");
+                testSample(net, "10101", "00001", Msg => "66");
+                testSample(net, "11010", "10000", Msg => "67");
+                testSample(net, "00110", "00100", Msg => "68");
+                testSample(net, "11111", "00010", Msg => "69");
+                testSample(net, "10000", "10000", Msg => "70");
+                testSample(net, "01001", "01000", Msg => "71");
+                testSample(net, "00000", "00000", Msg => "72");
+                testSample(net, "11101", "00100", Msg => "73");
+                testSample(net, "00000", "00000", Msg => "74");
+                testSample(net, "00000", "00000", Msg => "75");
+                testSample(net, "01010", "00010", Msg => "76");
 
             end if;
 
@@ -631,20 +598,24 @@ begin
             --------------------------------------------------------------------
             if run("ExampleFromDoc_RequestsChange") then
 
-                In_Req_v          := "10101";
-                In_WeightsArray_v := (0,
-                                      3,
-                                      1,
-                                      0,
-                                      3);
-                testSample(net, In_WeightsArray_v, In_Req_v, "00100", Msg => "0");
-                testSample(net, In_WeightsArray_v, In_Req_v, "00001", Msg => "1");
-                testSample(net, In_WeightsArray_v, In_Req_v, "00001", Msg => "2");
-                In_Req_v          := "01110";
-                testSample(net, In_WeightsArray_v, In_Req_v, "01000", Msg => "3");
-                testSample(net, In_WeightsArray_v, In_Req_v, "01000", Msg => "4");
-                testSample(net, In_WeightsArray_v, In_Req_v, "01000", Msg => "5");
-                testSample(net, In_WeightsArray_v, In_Req_v, "00100", Msg => "6");
+                In_Req_v       := "10101";
+                WeightsArray_v := (x"0",
+                                   x"3",
+                                   x"1",
+                                   x"0",
+                                   x"3");
+                Weights        <= flattenStlvArray(WeightsArray_v);
+
+                testSample(net, In_Req_v, "00100", Msg => "0");
+                testSample(net, In_Req_v, "00001", Msg => "1");
+                testSample(net, In_Req_v, "00001", Msg => "2");
+
+                In_Req_v := "01110";
+
+                testSample(net, In_Req_v, "01000", Msg => "3");
+                testSample(net, In_Req_v, "01000", Msg => "4");
+                testSample(net, In_Req_v, "01000", Msg => "5");
+                testSample(net, In_Req_v, "00100", Msg => "6");
 
             end if;
 
@@ -652,23 +623,31 @@ begin
             --------------------------------------------------------------------
             if run("ExampleFromDoc_WeightsChange") then
 
-                In_Req_v          := (others => '1');
-                In_WeightsArray_v := (1,
-                                      0,
-                                      0,
-                                      4,
-                                      0);
-                testSample(net, In_WeightsArray_v, In_Req_v, "10000", Msg => "0");
-                testSample(net, In_WeightsArray_v, In_Req_v, "00010", Msg => "1");
-                testSample(net, In_WeightsArray_v, In_Req_v, "00010", Msg => "2");
-                In_WeightsArray_v := (1,
-                                      0,
-                                      0,
-                                      1,
-                                      0);
-                testSample(net, In_WeightsArray_v, In_Req_v, "00010", Msg => "3");
-                testSample(net, In_WeightsArray_v, In_Req_v, "10000", Msg => "4");
-                testSample(net, In_WeightsArray_v, In_Req_v, "00010", Msg => "5");
+                In_Req_v       := (others => '1');
+                WeightsArray_v := (x"1",
+                                   x"0",
+                                   x"0",
+                                   x"4",
+                                   x"0");
+                Weights        <= flattenStlvArray(WeightsArray_v);
+
+                testSample(net, In_Req_v, "10000", Msg => "0");
+                testSample(net, In_Req_v, "00010", Msg => "1");
+                testSample(net, In_Req_v, "00010", Msg => "2");
+
+                wait_until_idle(net, as_sync(AxisMaster_c));
+                wait_until_idle(net, as_sync(AxisSlave_c));
+
+                WeightsArray_v := (x"1",
+                                   x"0",
+                                   x"0",
+                                   x"1",
+                                   x"0");
+                Weights        <= flattenStlvArray(WeightsArray_v);
+
+                testSample(net, In_Req_v, "00010", Msg => "3");
+                testSample(net, In_Req_v, "10000", Msg => "4");
+                testSample(net, In_Req_v, "00010", Msg => "5");
 
             end if;
 
@@ -676,15 +655,17 @@ begin
             --------------------------------------------------------------------
             if run("ExampleFromDoc_Static") then
 
-                In_WeightsArray_v := (1,
-                                      3,
-                                      2,
-                                      0,
-                                      1);
-                testSample(net, In_WeightsArray_v, "10111", "10000", Msg => "0");
-                testSample(net, In_WeightsArray_v, "10111", "00100", Msg => "1");
-                testSample(net, In_WeightsArray_v, "10111", "00100", Msg => "2");
-                testSample(net, In_WeightsArray_v, "10111", "00001", Msg => "3");
+                WeightsArray_v := (x"1",
+                                   x"3",
+                                   x"2",
+                                   x"0",
+                                   x"1");
+                Weights        <= flattenStlvArray(WeightsArray_v);
+
+                testSample(net, "10111", "10000", Msg => "0");
+                testSample(net, "10111", "00100", Msg => "1");
+                testSample(net, "10111", "00100", Msg => "2");
+                testSample(net, "10111", "00001", Msg => "3");
 
             end if;
 
