@@ -78,9 +78,11 @@ begin
                 check_equal(Stdlv_v(2), '0',  "arrayBool2Stdl->2");
 
             elsif run("flattenStlvArray") then
+
                 StlvArr_v := (0 => ("0000"),
                               1 => ("1111"),
                               2 => ("1010"));
+
                 StrlvArrFlat_v := flattenStlvArray(StlvArr_v);
                 check_equal(StrlvArrFlat_v(3 downto 0), 2#0000#, "flattenStlvArray->0");
                 check_equal(StrlvArrFlat_v(7 downto 4), 2#1111#, "flattenStlvArray->1");
@@ -88,7 +90,7 @@ begin
 
             elsif run("unflattenStlvArray") then
                 StrlvArrFlat_v := "000011110101";
-                StlvArr_v := unflattenStlvArray(StrlvArrFlat_v, 4);
+                StlvArr_v      := unflattenStlvArray(StrlvArrFlat_v, 4);
                 check_equal(StlvArr_v(2), 2#0000#, "unflattenStlvArray->2");
                 check_equal(StlvArr_v(1), 2#1111#, "unflattenStlvArray->1");
                 check_equal(StlvArr_v(0), 2#0101#, "unflattenStlvArray->0");

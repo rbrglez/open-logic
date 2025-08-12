@@ -123,10 +123,11 @@ package body olo_base_pkg_array is
     end function;
 
     function flattenStlvArray (a : in StlvArray_t) return std_logic_vector is
-        constant ElementSize_c : natural := a(0)'length;
+        constant ElementSize_c  : natural := a(0)'length;
         constant ElementCount_c : natural := a'length;
-        variable Flat_v       : std_logic_vector(ElementCount_c * ElementSize_c - 1 downto 0);
+        variable Flat_v         : std_logic_vector(ElementCount_c * ElementSize_c - 1 downto 0);
     begin
+
         for i in 0 to ElementCount_c - 1 loop
             Flat_v((i + 1) * ElementSize_c - 1 downto i * ElementSize_c) := a(i);
         end loop;
@@ -138,6 +139,7 @@ package body olo_base_pkg_array is
         constant ElementCount_c : natural := a'length / elementSize;
         variable Unflat_v       : StlvArray_t(0 to ElementCount_c - 1)(elementSize - 1 downto 0);
     begin
+
         for i in 0 to ElementCount_c - 1 loop
             Unflat_v(i) := a((i + 1) * elementSize - 1 downto i * elementSize);
         end loop;
