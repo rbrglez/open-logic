@@ -38,9 +38,11 @@ entity olo_base_arb_wrr is
         Latency_g     : natural range 0 to 1 := 0
     );
     port (
-        -- Control Interface
+        -- Control
         Clk        : in    std_logic;
         Rst        : in    std_logic;
+
+        -- Static Configuration
         Weights    : in    std_logic_vector(WeightWidth_g*GrantWidth_g-1 downto 0);
 
         -- Request Interface

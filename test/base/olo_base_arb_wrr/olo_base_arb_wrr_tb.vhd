@@ -596,63 +596,6 @@ begin
 
             --------------------------------------------------------------------
             --------------------------------------------------------------------
-            if run("ExampleFromDoc_RequestsChange") then
-
-                In_Req_v       := "10101";
-                WeightsArray_v := (x"0",
-                                   x"3",
-                                   x"1",
-                                   x"0",
-                                   x"3");
-                Weights        <= flattenStlvArray(WeightsArray_v);
-
-                testSample(net, In_Req_v, "00100", Msg => "0");
-                testSample(net, In_Req_v, "00001", Msg => "1");
-                testSample(net, In_Req_v, "00001", Msg => "2");
-
-                In_Req_v := "01110";
-
-                testSample(net, In_Req_v, "01000", Msg => "3");
-                testSample(net, In_Req_v, "01000", Msg => "4");
-                testSample(net, In_Req_v, "01000", Msg => "5");
-                testSample(net, In_Req_v, "00100", Msg => "6");
-
-            end if;
-
-            --------------------------------------------------------------------
-            --------------------------------------------------------------------
-            if run("ExampleFromDoc_WeightsChange") then
-
-                In_Req_v       := (others => '1');
-                WeightsArray_v := (x"1",
-                                   x"0",
-                                   x"0",
-                                   x"4",
-                                   x"0");
-                Weights        <= flattenStlvArray(WeightsArray_v);
-
-                testSample(net, In_Req_v, "10000", Msg => "0");
-                testSample(net, In_Req_v, "00010", Msg => "1");
-                testSample(net, In_Req_v, "00010", Msg => "2");
-
-                wait_until_idle(net, as_sync(AxisMaster_c));
-                wait_until_idle(net, as_sync(AxisSlave_c));
-
-                WeightsArray_v := (x"1",
-                                   x"0",
-                                   x"0",
-                                   x"1",
-                                   x"0");
-                Weights        <= flattenStlvArray(WeightsArray_v);
-
-                testSample(net, In_Req_v, "00010", Msg => "3");
-                testSample(net, In_Req_v, "10000", Msg => "4");
-                testSample(net, In_Req_v, "00010", Msg => "5");
-
-            end if;
-
-            --------------------------------------------------------------------
-            --------------------------------------------------------------------
             if run("ExampleFromDoc_Static") then
 
                 WeightsArray_v := (x"1",
@@ -666,6 +609,28 @@ begin
                 testSample(net, "10111", "00100", Msg => "1");
                 testSample(net, "10111", "00100", Msg => "2");
                 testSample(net, "10111", "00001", Msg => "3");
+
+            end if;
+
+            wait_until_idle(net, as_sync(AxisSlave_c));
+            wait_until_idle(net, as_sync(AxisMaster_c));
+            wait for Clk_Period_c*10;
+
+            --------------------------------------------------------------------
+            --------------------------------------------------------------------
+            if run("ExampleFromDoc_RequestsChange") then
+
+                WeightsArray_v := (x"0",
+                                   x"0",
+                                   x"0",
+                                   x"3",
+                                   x"2");
+                Weights        <= flattenStlvArray(WeightsArray_v);
+
+                testSample(net, "00011", "00010", Msg => "0");
+                testSample(net, "00011", "00010", Msg => "1");
+                testSample(net, "00001", "00001", Msg => "2");
+                testSample(net, "00001", "00001", Msg => "3");
 
             end if;
 

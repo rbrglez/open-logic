@@ -55,9 +55,9 @@ Normally this does not play a role becaus _Weights_ in most applications is stat
 changes dynamically this must be kept in mind.
 
 This is an implementation tradeoff chosen to limit the lenght of combinatorial paths (i.e. to allow
-hich clock frequencies).
+higher clock frequencies).
 
-Changes in _In_Req_ are applied in the immediately..
+Changes in _In_Req_ are applied immediately.
 
 **Requests Change:**
 
