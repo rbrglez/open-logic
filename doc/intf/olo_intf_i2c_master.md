@@ -57,6 +57,7 @@ tristate buffers.
 | :----------------- | :------ | ------- | :----------------------------------------------------------- |
 | ClkFrequency_g     | real    | -       | Frequency of the clock _Clk_ in Hz.<br />For correct operation, the clock frequency must be at least 16x higher than the I2C bus frequency. |
 | I2cFrequency_g     | real    | 100.0e3 | Frequency of the _I2cScl_ signal in Hz                       |
+| PrescalerBits_g    | integer | 0       | Number of bits used for the _Cmd_ClkPrescale_ width. If this value is set to 0, the SCL prescaling is disabled.
 | BusBusyTimeout_g   | real    | 1.0e-3  | If _I2cScl_ = '1' and _I2cSda_ = '1' for this time in sec., the bus is regarded as free. If the user does not provide any command for this time, the _olo_intf_i2c\_master_ automatically generates a stop-condition to release the bus. |
 | CmdTimeout_g       | real    | 1.0e-3  | When the _olo_intf\_i2c\_master_ is ready for the next command but the user does not provide a new command, after this timeout (in sec.) the bus is releases and _Status_CmdTo_ is pulsed to inform the user. |
 | InternalTriState_g | boolean | true    | **True** = Use internal tri-state buffer (_I2cScl_ and _I2cSda_) are used. <br />**False** = Use external tri-state buffer (_I2cScl\_x_ and _I2cSda\_x_) are used. |
@@ -73,13 +74,14 @@ tristate buffers.
 
 ### Command Interface
 
-| Name        | In/Out | Length | Default | Description                                                  |
-| :---------- | :----- | :----- | ------- | :----------------------------------------------------------- |
-| Cmd_Ready   | out    | 1      | N/A     | AXI-S handshaking signal for _Cmd_..._                       |
-| Cmd_Valid   | in     | 1      | -       | AXI-S handshaking signal for _Cmd_..._                       |
-| Cmd_Command | in     | 3      | -       | Command to execute (_olo_intf_i2c_master_pkg_  constant names in brackets)<br />"000" =\> Send startcondition (_I2cCmd_Start_c_)<br />"001" =\> Send stop condition (_I2cCmd_Stop_c_)<br />"010" =\> Send rep. start condition"  (_I2cCmd_RepStart_c_)   <br />"011" =\> Send data  byte (_I2cCmd_Send_c_) <br />"100" =\> Receive data byte  (_I2cCmd_Receive_c_) |
-| Cmd_Data    | in     | 8      | -       | Data to send (only for _I2cCmd_Send_c_  resp. _Cmd_Command="011"_). |
-| Cmd_Ack     | in     | 1      |         | Acknowledge to send (only for _I2cCmd_Receive_c_ resp. _Cmd_Command="100")._<br />**'1'** =\> send ACK , **'0'** =\> send NACK. <br />**Note that polarity is inverted compared to the acknowledge bit on the I2C bus.** |
+| Name            | In/Out | Length          | Default | Description                                                  |
+| :-------------- | :----- | :-------------- | ------- | :----------------------------------------------------------- |
+| Cmd_Ready       | out    | 1               | N/A     | AXI-S handshaking signal for _Cmd_..._                       |
+| Cmd_Valid       | in     | 1               | -       | AXI-S handshaking signal for _Cmd_..._                       |
+| Cmd_Command     | in     | 3               | -       | Command to execute (_olo_intf_i2c_master_pkg_  constant names in brackets)<br />"000" =\> Send startcondition (_I2cCmd_Start_c_)<br />"001" =\> Send stop condition (_I2cCmd_Stop_c_)<br />"010" =\> Send rep. start condition"  (_I2cCmd_RepStart_c_)   <br />"011" =\> Send data  byte (_I2cCmd_Send_c_) <br />"100" =\> Receive data byte  (_I2cCmd_Receive_c_) |
+| Cmd_Data        | in     | 8               | -       | Data to send (only for _I2cCmd_Send_c_  resp. _Cmd_Command="011"_). |
+| Cmd_Ack         | in     | 1               |         | Acknowledge to send (only for _I2cCmd_Receive_c_ resp. _Cmd_Command="100")._<br />**'1'** =\> send ACK , **'0'** =\> send NACK. <br />**Note that polarity is inverted compared to the acknowledge bit on the I2C bus.** |
+| Cmd_ClkPrescale | in     | PrescalerBits_g | '0'     | Runtime prescaler value for SCL clock. If _PrescalerBits_g_ > 0, the SCL frequency _I2cFrequency_g_ is divided by 2^Cmd_ClkPrescale. No prescaling is applied when _Cmd_ClkPrescale_ = "0". |
 
 ### Response Interface
 

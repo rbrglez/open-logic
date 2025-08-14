@@ -37,6 +37,8 @@ def add_configs(olo_tb):
         named_config(tb, {'BusFrequency_g': BusFreq})
     for IntTri in [True, False]:
         named_config(tb, {'InternalTriState_g': IntTri})
+    for Prescaler in [0, 1, 3]:
+        named_config(tb, {'Prescaler_g': Prescaler})
 
     ### olo_intf_sync ###
     sync_tb = 'olo_intf_sync_tb'

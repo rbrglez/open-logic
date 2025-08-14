@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Copyright (c) 2024 by Oliver Bruendler, Switzerland
--- Authors: Oliver Bruendler
+-- Copyright (c) 2025 by Alexander Ruede
+-- Authors: Oliver Bruendler, Alexander Ruede
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -34,6 +35,7 @@ library work;
 entity olo_intf_i2c_master_tb is
     generic (
         BusFrequency_g              : integer := 100_000;
+        Prescaler_g                 : integer := 0;
         InternalTriState_g          : boolean := true;
         runner_cfg                  : string
     );
@@ -44,9 +46,12 @@ architecture sim of olo_intf_i2c_master_tb is
     -----------------------------------------------------------------------------------------------
     -- Fixed Generics
     -----------------------------------------------------------------------------------------------
-    constant Scl_Period_c     : time := (1 sec) / real(BusFrequency_g);
-    constant BusBusyTimeout_c : real := 200.0/ real(BusFrequency_g);
-    constant CmdTimeout_c     : real := 50.0/ real(BusFrequency_g);
+    constant PrescalerBits_c  : integer := 4;
+    constant CmdClkPrescale_c : std_logic_vector(PrescalerBits_c - 1 downto 0) := std_logic_vector(to_unsigned(Prescaler_g, PrescalerBits_c));
+    constant PrescaleValue_c  : integer := 2**Prescaler_g;
+    constant Scl_Period_c     : time := (1 sec) / (real(BusFrequency_g) / real(PrescaleValue_c));
+    constant BusBusyTimeout_c : real := 200.0/ (real(BusFrequency_g) / real(PrescaleValue_c));
+    constant CmdTimeout_c     : real := 50.0/ (real(BusFrequency_g) / real(PrescaleValue_c));
 
     -----------------------------------------------------------------------------------------------
     -- TB Defnitions
@@ -93,11 +98,11 @@ architecture sim of olo_intf_i2c_master_tb is
 
     -- *** Verification Compnents ***
     constant I2cSlave_c : olo_test_i2c_t := new_olo_test_i2c (
-        bus_frequency => real(BusFrequency_g)
+        bus_frequency => real(BusFrequency_g) / real(PrescaleValue_c)
     );
 
     constant I2cMaster_c : olo_test_i2c_t := new_olo_test_i2c (
-        bus_frequency => real(BusFrequency_g)
+        bus_frequency => real(BusFrequency_g) / real(PrescaleValue_c)
     );
 
     -- *** Internal Messaging ***
@@ -351,7 +356,7 @@ begin
                 -- Timeout after start, other commands ignored
                 -- I2C Endpoint
                 i2c_expect_start(net, I2cSlave_c);
-                i2c_expect_stop(net, I2cSlave_c);
+                i2c_expect_stop(net, I2cSlave_c, 1 ms * PrescaleValue_c);
                 -- Commands
                 pushCommand(I2cCmd_Start_c);
                 pushCommand(I2cCmd_Send_c, true, X"42", true, Delay => CmdTimeout_c * (1.5 sec));
@@ -678,6 +683,7 @@ begin
             generic map (
                 ClkFrequency_g      => Clk_Frequency_c,
                 I2cFrequency_g      => real(BusFrequency_g),
+                PrescalerBits_g     => PrescalerBits_c,
                 BusBusyTimeout_g    => BusBusyTimeout_c,
                 CmdTimeout_g        => CmdTimeout_c,
                 InternalTriState_g  => InternalTriState_g,
@@ -693,6 +699,7 @@ begin
                 Cmd_Command     => Cmd_Command,
                 Cmd_Data        => Cmd_Data,
                 Cmd_Ack         => Cmd_Ack,
+                Cmd_ClkPrescale => CmdClkPrescale_c,
                 -- Response Interface
                 Resp_Valid      => Resp_Valid,
                 Resp_Command    => Resp_Command,
@@ -716,6 +723,7 @@ begin
             generic map (
                 ClkFrequency_g      => Clk_Frequency_c,
                 I2cFrequency_g      => real(BusFrequency_g),
+                PrescalerBits_g     => PrescalerBits_c,
                 BusBusyTimeout_g    => BusBusyTimeout_c,
                 CmdTimeout_g        => CmdTimeout_c,
                 InternalTriState_g  => InternalTriState_g,
@@ -731,6 +739,7 @@ begin
                 Cmd_Command     => Cmd_Command,
                 Cmd_Data        => Cmd_Data,
                 Cmd_Ack         => Cmd_Ack,
+                Cmd_ClkPrescale => CmdClkPrescale_c,
                 -- Response Interface
                 Resp_Valid      => Resp_Valid,
                 Resp_Command    => Resp_Command,

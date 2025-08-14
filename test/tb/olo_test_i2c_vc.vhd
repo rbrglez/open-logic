@@ -563,7 +563,7 @@ architecture a of olo_test_i2c_vc is
         signal scl  : inout std_logic;
         signal sda  : inout std_logic;
         msg         : in    string;
-        timeout     : in    time := 1 ms;
+        timeout     : in    time := 10 ms;
         clk_stretch : in    time := 0 ns) is
     begin
         -- Initial Check

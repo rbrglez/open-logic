@@ -1,7 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 -- Copyright (c) 2019 by Paul Scherrer Institute, Switzerland
 -- Copyright (c) 2024-2025 by Oliver Bruendler
--- Authors: Oliver Bruendler
+-- Copyright (c) 2025 by Alexander Ruede
+-- Authors: Oliver Bruendler, Alexander Ruede
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -58,6 +59,7 @@ entity olo_intf_i2c_master is
     generic (
         ClkFrequency_g      : real;
         I2cFrequency_g      : real    := 100.0e3;
+        PrescalerBits_g     : integer := 0;
         BusBusyTimeout_g    : real    := 1.0e-3;
         CmdTimeout_g        : real    := 1.0e-3;
         InternalTriState_g  : boolean := true;
@@ -73,6 +75,7 @@ entity olo_intf_i2c_master is
         Cmd_Command     : in    std_logic_vector(2 downto 0);
         Cmd_Data        : in    std_logic_vector(7 downto 0);
         Cmd_Ack         : in    std_logic;
+        Cmd_ClkPrescale : in    std_logic_vector(PrescalerBits_g - 1 downto 0) := (others => '0');
         -- Response Interface
         Resp_Valid      : out   std_logic;
         Resp_Command    : out   std_logic_vector(2 downto 0);
@@ -103,8 +106,10 @@ architecture rtl of olo_intf_i2c_master is
 
     -- *** Constants ***
     constant BusyTimoutLimit_c    : integer := integer(ClkFrequency_g * BusBusyTimeout_g) - 1;
-    constant QuarterPeriodLimit_c : integer := integer(ceil(ClkFrequency_g / I2cFrequency_g / 4.0)) - 1;
+    constant QuarterPeriodLimit_c : integer := integer(ceil(ClkFrequency_g / I2cFrequency_g / 4.0));
     constant CmdTimeoutLimit_c    : integer := integer(ClkFrequency_g * CmdTimeout_g) - 1;
+    constant PrescalerMax_c       : integer := integer(real(2**(2**PrescalerBits_g - 1)));
+    constant QuarterPeriodCntBits : integer := log2ceil(((QuarterPeriodLimit_c - 1) * PrescalerMax_c) + 1);
 
     -- *** Types ***
     type Fsm_t is (
@@ -118,9 +123,10 @@ architecture rtl of olo_intf_i2c_master is
         Cmd_Ready      : std_logic;
         SclLast        : std_logic;
         SdaLast        : std_logic;
+        Prescaler      : unsigned(PrescalerBits_g - 1 downto 0);
         BusBusyToCnt   : unsigned(log2ceil(BusyTimoutLimit_c + 1) - 1 downto 0);
         TimeoutCmdCnt  : unsigned(log2ceil(CmdTimeoutLimit_c + 1) - 1 downto 0);
-        QuartPeriodCnt : unsigned(log2ceil(QuarterPeriodLimit_c + 1) - 1 downto 0);
+        QuartPeriodCnt : unsigned(QuarterPeriodCntBits - 1 downto 0);
         QPeriodTick    : std_logic;
         CmdTypeLatch   : std_logic_vector(Cmd_Command'range);
         CmdAckLatch    : std_logic;
@@ -179,7 +185,7 @@ begin
         v.QPeriodTick := '0';
         if (r.Fsm = BusIdle_s) or (r.Fsm = BusBusy_s) then
             v.QuartPeriodCnt := (others => '0');
-        elsif r.QuartPeriodCnt = QuarterPeriodLimit_c then
+        elsif r.QuartPeriodCnt = shift_left(to_unsigned(QuarterPeriodLimit_c, QuarterPeriodCntBits), to_integer(v.Prescaler)) - 1 then
             v.QuartPeriodCnt := (others => '0');
             v.QPeriodTick    := '1';
         else
@@ -237,6 +243,12 @@ begin
                     if Cmd_Command = I2cCmd_Start_c then
                         v.Fsm       := Start1_s;
                         v.Cmd_Ready := '0';
+                        -- Sample the prescaler value
+                        if PrescalerBits_g > 0 then
+                            v.Prescaler := unsigned(Cmd_ClkPrescale);
+                        else
+                            v.Prescaler := (others => '0');
+                        end if;
                     else
                         v.Resp_Valid  := '1';
                         v.Resp_SeqErr := '1';
@@ -591,6 +603,7 @@ begin
                 r.SclLast        <= '1';
                 r.SdaLast        <= '1';
                 r.BusBusyToCnt   <= (others => '0');
+                r.Prescaler      <= (others => '0');
                 r.Fsm            <= BusIdle_s;
                 r.SclOut         <= '1';
                 r.SdaOut         <= '1';
