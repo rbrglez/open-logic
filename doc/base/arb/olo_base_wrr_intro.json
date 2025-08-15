@@ -1,0 +1,18 @@
+{signal: [
+  {name: 'Clk',         wave: 'p......', period: 2},
+  {name: 'In_Valid',    wave: '01...0.', period: 2},
+  {name: 'Weights',     wave: '2......', data: ['0x13201'], period: 2},
+  {name: 'In_Req',      wave: 'x2...x.', data: ['0b10111'], period: 2},
+  ['Latency_g=0',
+   {},
+   {name: 'Out_Valid',    wave: '01...0.', period: 2},
+   {name: 'Out_Grant',    wave: 'x34.5x.', data: ['0b10000', '0b00100', '0b0001'], period: 2},
+   {}
+  ],
+  ['Latency_g=1',
+   {},
+   {name: 'Out_Valid',    wave: '0.1...0', period: 2},
+   {name: 'Out_Grant',    wave: 'x.34.5x', data: ['0b10000', '0b00100', '0b0001'], period: 2},
+   {}
+  ],
+]}
