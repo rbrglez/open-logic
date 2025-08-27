@@ -1,7 +1,8 @@
 # ---------------------------------------------------------------------------------------------------
 # Copyright (c) 2025 by Oliver Bründler
+# Copyright (c) 2025 by Alexander Ruede
 # All rights reserved.
-# Authors: Oliver Bruendler
+# Authors: Oliver Bruendler, Alexander Ruede
 # ---------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------------------------
@@ -37,8 +38,11 @@ def add_configs(olo_tb):
         named_config(tb, {'BusFrequency_g': BusFreq})
     for IntTri in [True, False]:
         named_config(tb, {'InternalTriState_g': IntTri})
-    for Prescaler in [0, 1, 3]:
-        named_config(tb, {'Prescaler_g': Prescaler})
+    # Clock Divider disabled
+    named_config(tb, {'ClkDivBits_g': 0})
+    # Clock Divider Enabled
+    for ClkDiv_g in [0, 1, 2, 5]:
+        named_config(tb, {'ClkDivBits_g': 8, 'ClkDiv_g': ClkDiv_g})
 
     ### olo_intf_sync ###
     sync_tb = 'olo_intf_sync_tb'
