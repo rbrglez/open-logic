@@ -1027,7 +1027,7 @@ begin
                 else
                     expect_byte_excl_clock(data_slv, scl, sda,
                                            to_string(msg_p) & " - Receive byte in slave mode [I2cExpectRxByte]",
-                                           timeout => timeout,
+                                           timeout     => timeout,
                                            clk_stretch => clk_stretch);
                     send_bit_excl_clock(ack_output, scl, sda,
                                         to_string(msg_p) & " - ACK in slave mode [I2cExpectRxByte]",
