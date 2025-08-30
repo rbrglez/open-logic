@@ -59,7 +59,7 @@ entity olo_intf_i2c_master is
     generic (
         ClkFrequency_g      : real;
         I2cFrequency_g      : real    := 100.0e3;
-        ClkDivBits_g        : integer := 0;
+        ClkDivBits_g        : natural := 0;
         BusBusyTimeout_g    : real    := 1.0e-3;
         CmdTimeout_g        : real    := 1.0e-3;
         InternalTriState_g  : boolean := true;
@@ -90,10 +90,10 @@ entity olo_intf_i2c_master is
         I2c_Scl         : inout std_logic;
         I2c_Sda         : inout std_logic;
         -- I2c Interface with external Tri-State
-        I2c_Scl_i       : in    std_logic := '0';
+        I2c_Scl_i       : in    std_logic                                   := '0';
         I2c_Scl_o       : out   std_logic;
         I2c_Scl_t       : out   std_logic;
-        I2c_Sda_i       : in    std_logic := '0';
+        I2c_Sda_i       : in    std_logic                                   := '0';
         I2c_Sda_o       : out   std_logic;
         I2c_Sda_t       : out   std_logic
     );
@@ -184,8 +184,8 @@ begin
         v.QPeriodTick := '0';
         if (r.Fsm = BusIdle_s) or (r.Fsm = BusBusy_s) then
             v.QuartPeriodCnt := (others => '0');
-            v.ClkDivCnt := to_unsigned(1, ClkDivBits_g);
-        elsif r.ClkDivCnt = r.CmdClkDivLatch or ClkDivBits_g = 0 then
+            v.ClkDivCnt      := to_unsigned(1, ClkDivBits_g);
+        elsif r.ClkDivCnt >= r.CmdClkDivLatch or ClkDivBits_g = 0 then
             v.ClkDivCnt := to_unsigned(1, ClkDivBits_g);
             if r.QuartPeriodCnt = QuarterPeriodLimit_c then
                 v.QuartPeriodCnt := (others => '0');
@@ -306,7 +306,7 @@ begin
                 -- Handle Clock Stretching in case of a repeated start (slave keeps SCL low)
                 if I2cScl_Sync = '0' and r.CmdTypeLatch = I2cCmd_RepStart_c then
                     v.QuartPeriodCnt := (others => '0');
-                    v.ClkDivCnt := to_unsigned(1, ClkDivBits_g);
+                    v.ClkDivCnt      := to_unsigned(1, ClkDivBits_g);
                 end if;
 
                 -- Handle Arbitration (other master transmits start condition first)
@@ -456,7 +456,7 @@ begin
                 -- Handle Clock Stretching (slave keeps SCL low)
                 if I2cScl_Sync = '0' then
                     v.QuartPeriodCnt := (others => '0');
-                    v.ClkDivCnt := to_unsigned(1, ClkDivBits_g);
+                    v.ClkDivCnt      := to_unsigned(1, ClkDivBits_g);
                 end if;
 
                 -- Handle Arbitration for Sending (only databits, not ack)
@@ -520,7 +520,7 @@ begin
                 -- Handle Clock Stretching (slave keeps SCL low)
                 if I2cScl_Sync = '0' then
                     v.QuartPeriodCnt := (others => '0');
-                    v.ClkDivCnt := to_unsigned(1, ClkDivBits_g);
+                    v.ClkDivCnt      := to_unsigned(1, ClkDivBits_g);
                 end if;
 
             when Stop3_s =>
