@@ -25,7 +25,7 @@ An [Introduction Video](https://www.youtube.com/watch?v=hh3bS1SiIQs&t=6s) to ope
 [Open Logic YouTube channel](https://www.youtube.com/@OpenLogicFPGA). If you are new to Open Logic, this is a good
 starting point.
 
-Maintainer: [obruendl](mailto:oliver.bruendler@gmx.ch)
+Maintainer: [obruendl](mailto:oli.bruendler@gmx.ch)
 
 If you appreciate the project, consider **supporting it with a small donation**. If you're part of a commercial company
 that prefers purchasing services over making voluntary donations, that's no problem. You can also **purchase offerings**
@@ -205,6 +205,6 @@ summary of alternative libraries that was reported by users and in replies to Op
 - [Taxi](https://github.com/fpganinja/taxi)
 
 If you are interested in my opinion what the pros and cons of those libraries are compared to Open Logic, contact me
-directly: [obruendl](mailto:oliver.bruendler@gmx.ch).
+directly: [obruendl](mailto:oli.bruendler@gmx.ch).
 
 If you are aware of any oder HDL standard libraries, please let me know as well so I can extend the list.
