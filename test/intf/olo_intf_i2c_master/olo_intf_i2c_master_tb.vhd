@@ -1,6 +1,7 @@
 ---------------------------------------------------------------------------------------------------
 -- Copyright (c) 2024 by Oliver Bruendler, Switzerland
--- Authors: Oliver Bruendler
+-- Copyright (c) 2025 by Alexander Ruede
+-- Authors: Oliver Bruendler, Alexander Ruede
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -34,6 +35,8 @@ library work;
 entity olo_intf_i2c_master_tb is
     generic (
         BusFrequency_g              : integer := 100_000;
+        ClkDiv_g                    : integer := 1;
+        ClkDivBits_g                : integer := 0;
         InternalTriState_g          : boolean := true;
         runner_cfg                  : string
     );
@@ -44,9 +47,11 @@ architecture sim of olo_intf_i2c_master_tb is
     -----------------------------------------------------------------------------------------------
     -- Fixed Generics
     -----------------------------------------------------------------------------------------------
-    constant Scl_Period_c     : time := (1 sec) / real(BusFrequency_g);
-    constant BusBusyTimeout_c : real := 200.0/ real(BusFrequency_g);
-    constant CmdTimeout_c     : real := 50.0/ real(BusFrequency_g);
+    -- The ClkDivNonZero_c ensures that the clock division is never zero when using it to calculate the period and timeouts.
+    constant ClkDivNonZero_c  : integer := choose(ClkDiv_g = 0, 1, ClkDiv_g);
+    constant Scl_Period_c     : time    := (1 sec) / (real(BusFrequency_g) / real(ClkDivNonZero_c));
+    constant BusBusyTimeout_c : real    := 200.0/ (real(BusFrequency_g) / real(ClkDivNonZero_c));
+    constant CmdTimeout_c     : real    := 50.0/ (real(BusFrequency_g) / real(ClkDivNonZero_c));
 
     -----------------------------------------------------------------------------------------------
     -- TB Defnitions
@@ -66,6 +71,7 @@ architecture sim of olo_intf_i2c_master_tb is
     signal Cmd_Command    : std_logic_vector(2 downto 0);
     signal Cmd_Data       : std_logic_vector(7 downto 0);
     signal Cmd_Ack        : std_logic;
+    signal Cmd_ClkDiv     : std_logic_vector(ClkDivBits_g - 1 downto 0);
     -- Response Interface
     signal Resp_Valid     : std_logic;
     signal Resp_Command   : std_logic_vector(2 downto 0);
@@ -93,11 +99,11 @@ architecture sim of olo_intf_i2c_master_tb is
 
     -- *** Verification Compnents ***
     constant I2cSlave_c : olo_test_i2c_t := new_olo_test_i2c (
-        bus_frequency => real(BusFrequency_g)
+        bus_frequency => real(BusFrequency_g) / real(ClkDivNonZero_c)
     );
 
     constant I2cMaster_c : olo_test_i2c_t := new_olo_test_i2c (
-        bus_frequency => real(BusFrequency_g)
+        bus_frequency => real(BusFrequency_g) / real(ClkDivNonZero_c)
     );
 
     -- *** Internal Messaging ***
@@ -332,7 +338,7 @@ begin
             if run("CmdDelayed") then
                 -- I2C Endpoint
                 i2c_expect_start(net, I2cSlave_c);
-                i2c_expect_rx_byte(net, I2cSlave_c, 16#42#);
+                i2c_expect_rx_byte(net, I2cSlave_c, 16#42#, timeout => ClkDivNonZero_c * 1 ms);
                 i2c_expect_stop(net, I2cSlave_c);
                 -- Commands
                 pushCommand(I2cCmd_Start_c);
@@ -351,7 +357,7 @@ begin
                 -- Timeout after start, other commands ignored
                 -- I2C Endpoint
                 i2c_expect_start(net, I2cSlave_c);
-                i2c_expect_stop(net, I2cSlave_c);
+                i2c_expect_stop(net, I2cSlave_c, 1 ms * ClkDivNonZero_c);
                 -- Commands
                 pushCommand(I2cCmd_Start_c);
                 pushCommand(I2cCmd_Send_c, true, X"42", true, Delay => CmdTimeout_c * (1.5 sec));
@@ -678,6 +684,7 @@ begin
             generic map (
                 ClkFrequency_g      => Clk_Frequency_c,
                 I2cFrequency_g      => real(BusFrequency_g),
+                ClkDivBits_g        => ClkDivBits_g,
                 BusBusyTimeout_g    => BusBusyTimeout_c,
                 CmdTimeout_g        => CmdTimeout_c,
                 InternalTriState_g  => InternalTriState_g,
@@ -693,6 +700,7 @@ begin
                 Cmd_Command     => Cmd_Command,
                 Cmd_Data        => Cmd_Data,
                 Cmd_Ack         => Cmd_Ack,
+                Cmd_ClkDiv      => Cmd_ClkDiv,
                 -- Response Interface
                 Resp_Valid      => Resp_Valid,
                 Resp_Command    => Resp_Command,
@@ -716,6 +724,7 @@ begin
             generic map (
                 ClkFrequency_g      => Clk_Frequency_c,
                 I2cFrequency_g      => real(BusFrequency_g),
+                ClkDivBits_g        => ClkDivBits_g,
                 BusBusyTimeout_g    => BusBusyTimeout_c,
                 CmdTimeout_g        => CmdTimeout_c,
                 InternalTriState_g  => InternalTriState_g,
@@ -731,6 +740,7 @@ begin
                 Cmd_Command     => Cmd_Command,
                 Cmd_Data        => Cmd_Data,
                 Cmd_Ack         => Cmd_Ack,
+                Cmd_ClkDiv      => Cmd_ClkDiv,
                 -- Response Interface
                 Resp_Valid      => Resp_Valid,
                 Resp_Command    => Resp_Command,
@@ -793,6 +803,7 @@ begin
         Cmd_Command <= (others => 'X');
         Cmd_Data    <= (others => 'X');
         Cmd_Ack     <= 'X';
+        Cmd_ClkDiv  <= (others => 'X');
 
         -- loop messages
         loop
@@ -826,11 +837,16 @@ begin
                 if SetAck_v then
                     Cmd_Ack <= Ack_v;
                 end if;
+                -- Do not set ClkDiv on any other command than start
+                if ClkDivBits_g > 0 and Command_v = I2cCmd_Start_c then
+                    Cmd_ClkDiv <= std_logic_vector(to_unsigned(ClkDiv_g, ClkDivBits_g));
+                end if;
                 wait until rising_edge(Clk) and Cmd_Ready = '1';
                 Cmd_Valid   <= '0';
                 Cmd_Command <= (others => 'X');
                 Cmd_Data    <= (others => 'X');
                 Cmd_Ack     <= 'X';
+                Cmd_ClkDiv  <= (others => 'X');
             else
                 error("Unexpected message type in vc_cmd");
             end if;
