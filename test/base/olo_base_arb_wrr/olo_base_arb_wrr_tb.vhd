@@ -58,15 +58,6 @@ architecture sim of olo_base_arb_wrr_tb is
         );
 
     -- Master VC
-    constant TotalInBits_c : integer := GrantWidth_c + WeightWidth_c*GrantWidth_c;
-
-    signal In_Data : std_logic_vector(TotalInBits_c - 1 downto 0);
-
-    constant In_Data_ReqHighIdx_c     : integer := TotalInBits_c - 1;
-    constant In_Data_ReqLowIdx_c      : integer := TotalInBits_c - GrantWidth_c;
-    constant In_Data_WeightsHighIdx_c : integer := In_Data_ReqLowIdx_c - 1;
-    constant In_Data_WeightsLowIdx_c  : integer := 0;
-
     constant AxisMaster_c : axi_stream_master_t := new_axi_stream_master (
             data_length  => GrantWidth_c,
             stall_config => new_stall_config(choose(RandomStall_g, 0.5, 0.0), 5, 10)
@@ -87,19 +78,6 @@ architecture sim of olo_base_arb_wrr_tb is
     -- TB Definitions
     -----------------------------------------------------------------------------------------------
     -- *** Procedures  and Functions ***
-
-    -- Converts an integer array to a std_logic_vector
-    function integerArray2Slv (IntArray : IntegerArray_t; VectorWidth : positive) return std_logic_vector is
-        constant ArrayWidth_c : positive := IntArray'length;
-        variable Vec_v        : std_logic_vector(ArrayWidth_c * VectorWidth - 1 downto 0);
-    begin
-
-        for i in IntArray'range loop
-            Vec_v((i + 1)*VectorWidth - 1 downto i*VectorWidth) := toUslv(IntArray(i), VectorWidth);
-        end loop;
-
-        return Vec_v;
-    end function;
 
     -- Writes Weights and Request to DUT and compares received Grant with the ExpectedGrant
     procedure testSample (
@@ -172,7 +150,6 @@ begin
     test_runner_watchdog(runner, 1 ms);
 
     p_control : process is
-        variable In_Req_v       : std_logic_vector(In_Req'range);
         variable WeightsArray_v : StlvArray_t(GrantWidth_c - 1 downto 0)(WeightWidth_c - 1 downto 0);
     begin
         test_runner_setup(runner, runner_cfg);
