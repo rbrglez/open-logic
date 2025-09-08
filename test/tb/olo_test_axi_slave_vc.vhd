@@ -42,31 +42,6 @@ package olo_test_axi_slave_pkg is
     constant axi_b_msg  : msg_type_t := new_msg_type("axi apply b");
     constant axi_r_msg  : msg_type_t := new_msg_type("axi apply r");
 
-    -- AW State
-    constant aw_queue            : queue_t := new_queue;
-    shared variable aw_initiated : natural := 0;
-    shared variable aw_completed : natural := 0;
-
-    -- AR State
-    constant ar_queue            : queue_t := new_queue;
-    shared variable ar_initiated : natural := 0;
-    shared variable ar_completed : natural := 0;
-
-    -- W State
-    constant w_queue            : queue_t := new_queue;
-    shared variable w_initiated : natural := 0;
-    shared variable w_completed : natural := 0;
-
-    -- B State
-    constant b_queue            : queue_t := new_queue;
-    shared variable b_initiated : natural := 0;
-    shared variable b_completed : natural := 0;
-
-    -- R State
-    constant r_queue            : queue_t := new_queue;
-    shared variable r_initiated : natural := 0;
-    shared variable r_completed : natural := 0;
-
     -- *** Push Individual Messages ***
     -- Expect AW transaction
     procedure expect_aw (
@@ -564,6 +539,31 @@ entity olo_test_axi_slave_vc is
 end entity;
 
 architecture a of olo_test_axi_slave_vc is
+
+    -- AW State
+    constant aw_queue            : queue_t := new_queue;
+    shared variable aw_initiated : natural := 0;
+    shared variable aw_completed : natural := 0;
+
+    -- AR State
+    constant ar_queue            : queue_t := new_queue;
+    shared variable ar_initiated : natural := 0;
+    shared variable ar_completed : natural := 0;
+
+    -- W State
+    constant w_queue            : queue_t := new_queue;
+    shared variable w_initiated : natural := 0;
+    shared variable w_completed : natural := 0;
+
+    -- B State
+    constant b_queue            : queue_t := new_queue;
+    shared variable b_initiated : natural := 0;
+    shared variable b_completed : natural := 0;
+
+    -- R State
+    constant r_queue            : queue_t := new_queue;
+    shared variable r_initiated : natural := 0;
+    shared variable r_completed : natural := 0;
 
 begin
 
