@@ -91,5 +91,13 @@ class ToolLibero(ToolBase):
             "LUTs": size,
             "SLEs": size
         }
+    
+    def check_drc(self):
+        # Latches
+        log = self._find_file_in_project(".srr")
+        with open(log, "r") as f:
+            text = f.read()
+            if "Latch generated" in text:
+                raise RuntimeError(f"DRC Violation: Latch detected - see reports and logs")
 
     
