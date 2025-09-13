@@ -1,6 +1,5 @@
 # ---------------------------------------------------------------------------------------------------
-# Copyright (c) 2025 by Oliver Bründler
-# All rights reserved.
+# Copyright (c) 2025 by Oliver Bruendler
 # Authors: Oliver Bruendler
 # ---------------------------------------------------------------------------------------------------
 from typing import List
@@ -102,5 +101,13 @@ class ToolVivado(ToolBase):
             "Slice LUTs": int(0.5 * size),
             "Slice Registers": size
         }
+    
+    def check_drc(self):
+        # Latches
+        log = self._find_file_in_project("vivado.log")
+        with open(log, "r") as f:
+            text = f.read()
+            if "inferring latch" in text:
+                raise RuntimeError(f"DRC Violation: Latch detected - see reports and logs")
 
     

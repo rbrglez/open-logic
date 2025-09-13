@@ -1,8 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 -- Copyright (c) 2019 by Paul Scherrer Institute, Switzerland
--- Copyright (c) 2024-2025 by Oliver Bründler
--- All rights reserved.
--- Authors: Oliver Bruendler
+-- Copyright (c) 2024-2025 by Oliver Bruendler
+-- Copyright (c) 2025 by Alexander Ruede
+-- Authors: Oliver Bruendler, Alexander Ruede
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -59,6 +59,7 @@ entity olo_intf_i2c_master is
     generic (
         ClkFrequency_g      : real;
         I2cFrequency_g      : real    := 100.0e3;
+        ClkDivBits_g        : natural := 0;
         BusBusyTimeout_g    : real    := 1.0e-3;
         CmdTimeout_g        : real    := 1.0e-3;
         InternalTriState_g  : boolean := true;
@@ -74,6 +75,7 @@ entity olo_intf_i2c_master is
         Cmd_Command     : in    std_logic_vector(2 downto 0);
         Cmd_Data        : in    std_logic_vector(7 downto 0);
         Cmd_Ack         : in    std_logic;
+        Cmd_ClkDiv      : in    std_logic_vector(ClkDivBits_g - 1 downto 0) := (others => '0');
         -- Response Interface
         Resp_Valid      : out   std_logic;
         Resp_Command    : out   std_logic_vector(2 downto 0);
@@ -88,10 +90,10 @@ entity olo_intf_i2c_master is
         I2c_Scl         : inout std_logic;
         I2c_Sda         : inout std_logic;
         -- I2c Interface with external Tri-State
-        I2c_Scl_i       : in    std_logic := '0';
+        I2c_Scl_i       : in    std_logic                                   := '0';
         I2c_Scl_o       : out   std_logic;
         I2c_Scl_t       : out   std_logic;
-        I2c_Sda_i       : in    std_logic := '0';
+        I2c_Sda_i       : in    std_logic                                   := '0';
         I2c_Sda_o       : out   std_logic;
         I2c_Sda_t       : out   std_logic
     );
@@ -123,6 +125,8 @@ architecture rtl of olo_intf_i2c_master is
         TimeoutCmdCnt  : unsigned(log2ceil(CmdTimeoutLimit_c + 1) - 1 downto 0);
         QuartPeriodCnt : unsigned(log2ceil(QuarterPeriodLimit_c + 1) - 1 downto 0);
         QPeriodTick    : std_logic;
+        ClkDivCnt      : unsigned(ClkDivBits_g - 1 downto 0);
+        CmdClkDivLatch : unsigned(ClkDivBits_g - 1 downto 0);
         CmdTypeLatch   : std_logic_vector(Cmd_Command'range);
         CmdAckLatch    : std_logic;
         Fsm            : Fsm_t;
@@ -180,11 +184,17 @@ begin
         v.QPeriodTick := '0';
         if (r.Fsm = BusIdle_s) or (r.Fsm = BusBusy_s) then
             v.QuartPeriodCnt := (others => '0');
-        elsif r.QuartPeriodCnt = QuarterPeriodLimit_c then
-            v.QuartPeriodCnt := (others => '0');
-            v.QPeriodTick    := '1';
+            v.ClkDivCnt      := to_unsigned(1, ClkDivBits_g);
+        elsif r.ClkDivCnt >= r.CmdClkDivLatch or ClkDivBits_g = 0 then
+            v.ClkDivCnt := to_unsigned(1, ClkDivBits_g);
+            if r.QuartPeriodCnt = QuarterPeriodLimit_c then
+                v.QuartPeriodCnt := (others => '0');
+                v.QPeriodTick    := '1';
+            else
+                v.QuartPeriodCnt := r.QuartPeriodCnt + 1;
+            end if;
         else
-            v.QuartPeriodCnt := r.QuartPeriodCnt + 1;
+            v.ClkDivCnt := r.ClkDivCnt + 1;
         end if;
 
         -- *** Command Timeout Detection ***
@@ -238,6 +248,12 @@ begin
                     if Cmd_Command = I2cCmd_Start_c then
                         v.Fsm       := Start1_s;
                         v.Cmd_Ready := '0';
+                        -- Sample the clock division value
+                        if ClkDivBits_g > 0 and Cmd_ClkDiv /= zerosVector(Cmd_ClkDiv'length) then
+                            v.CmdClkDivLatch := unsigned(Cmd_ClkDiv);
+                        else
+                            v.CmdClkDivLatch := to_unsigned(1, ClkDivBits_g);
+                        end if;
                     else
                         v.Resp_Valid  := '1';
                         v.Resp_SeqErr := '1';
@@ -290,6 +306,7 @@ begin
                 -- Handle Clock Stretching in case of a repeated start (slave keeps SCL low)
                 if I2cScl_Sync = '0' and r.CmdTypeLatch = I2cCmd_RepStart_c then
                     v.QuartPeriodCnt := (others => '0');
+                    v.ClkDivCnt      := to_unsigned(1, ClkDivBits_g);
                 end if;
 
                 -- Handle Arbitration (other master transmits start condition first)
@@ -439,6 +456,7 @@ begin
                 -- Handle Clock Stretching (slave keeps SCL low)
                 if I2cScl_Sync = '0' then
                     v.QuartPeriodCnt := (others => '0');
+                    v.ClkDivCnt      := to_unsigned(1, ClkDivBits_g);
                 end if;
 
                 -- Handle Arbitration for Sending (only databits, not ack)
@@ -502,6 +520,7 @@ begin
                 -- Handle Clock Stretching (slave keeps SCL low)
                 if I2cScl_Sync = '0' then
                     v.QuartPeriodCnt := (others => '0');
+                    v.ClkDivCnt      := to_unsigned(1, ClkDivBits_g);
                 end if;
 
             when Stop3_s =>

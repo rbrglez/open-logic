@@ -1,7 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 -- Copyright (c) 2018 by Paul Scherrer Institute, Switzerland
--- Copyright (c) 2024 by Oliver Bründler
--- All rights reserved.
+-- Copyright (c) 2024 by Oliver Bruendler
 -- Authors: Oliver Bruendler
 ---------------------------------------------------------------------------------------------------
 
@@ -42,8 +41,8 @@ entity olo_base_cc_status is
         In_RstOut   : out   std_logic;
         In_Data     : in    std_logic_vector(Width_g - 1 downto 0);
         Out_Clk     : in    std_logic;
-        Out_RstIn   : in    std_logic;
-        Out_RstOut  : out   std_logic := '0';
+        Out_RstIn   : in    std_logic := '0';
+        Out_RstOut  : out   std_logic;
         Out_Data    : out   std_logic_vector(Width_g - 1 downto 0)
     );
 end entity;

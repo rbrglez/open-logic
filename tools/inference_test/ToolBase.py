@@ -1,6 +1,5 @@
 # ---------------------------------------------------------------------------------------------------
-# Copyright (c) 2025 by Oliver Bründler
-# All rights reserved.
+# Copyright (c) 2025 by Oliver Bruendler
 # Authors: Oliver Bruendler
 # ---------------------------------------------------------------------------------------------------
 from typing import List
@@ -76,5 +75,13 @@ class ToolBase:
 
         :param size: The size of the output to be reduced in bits.
         :return: A dictionary containing the resources used for output reduction.
+        """
+        raise NotImplementedError("This method should be implemented by subclasses.")
+    
+    def check_drc(self):
+        """
+        Check if any open logic DRCs are violaged (e.g. if there are latches).
+
+        In case of violations, an exception is raised.
         """
         raise NotImplementedError("This method should be implemented by subclasses.")

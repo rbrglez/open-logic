@@ -1,6 +1,5 @@
 # ---------------------------------------------------------------------------------------------------
-# Copyright (c) 2025 by Oliver Bründler
-# All rights reserved.
+# Copyright (c) 2025 by Oliver Bruendler
 # Authors: Oliver Bruendler
 # ---------------------------------------------------------------------------------------------------
 from typing import List
@@ -101,5 +100,13 @@ class ToolGowin(ToolBase):
             "BSRAM": 0,
             "DSP": 0,
         }
+    
+    def check_drc(self):
+        # Latches
+        log = self._find_file_in_project("gowin.log")
+        with open(log, "r") as f:
+            text = f.read()
+            if "Latch inferred" in text:
+                raise RuntimeError(f"DRC Violation: Latch detected - see reports and logs")
 
     

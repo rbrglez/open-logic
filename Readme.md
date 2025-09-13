@@ -1,17 +1,21 @@
 <img src="./doc/Logo.png" alt="Logo" width="400">
 
 ![example workflow](https://github.com/obruendl/open-logic/actions/workflows/hdl_check.yml/badge.svg)
+![example workflow](https://github.com/obruendl/open-logic/actions/workflows/synthesis.yml/badge.svg)
 ![Endpoint Badge](https://img.shields.io/endpoint?url=https://storage.googleapis.com/open-logic-badges/coverage/version.json?cacheSeconds=0)
 ![Endpoint Badge](https://img.shields.io/endpoint?url=https://storage.googleapis.com/open-logic-badges/coverage/date.json?cacheSeconds=0)
 [![Join the chat at https://gitter.im/open-logic/general](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/open-logic/general?utm_source=badge&utm_medium=badge&utm_content=badge)
 
-# Open Logic - A VHDL Standard Library
+# Open Logic - A VHDL Standard* Library
 
 _Open Logic_ aims to be for HDL projects what _stdlib_ is for C/C++ projects.
 
+Note: The formulation _Standard* Library_ is used to depict the idea behind the project. It is **NOT** meant to imply
+that there is any kind of standardization committee involved.
+
 _Open Logic_ implements commonly used components in a reusable and vendor/tool-independent way and provide them under a
-permissive open source license (LGPL modified for FPGA usage, see [License.txt](./License.txt)), so the code can be used
-in commercial projects.
+permissive open source license (LGPL with exceptions for FPGA usage, see [License.txt](./License.txt)), so the code
+can be used in commercial projects.
 
 _Open Logic_ is written in VHDL-2008 but can also be used from System Verilog easily.
 
@@ -21,7 +25,7 @@ An [Introduction Video](https://www.youtube.com/watch?v=hh3bS1SiIQs&t=6s) to ope
 [Open Logic YouTube channel](https://www.youtube.com/@OpenLogicFPGA). If you are new to Open Logic, this is a good
 starting point.
 
-Maintainer: [obruendl](oliver.bruendler@gmx.ch)
+Maintainer: [obruendl](mailto:oli.bruendler@gmx.ch)
 
 If you appreciate the project, consider **supporting it with a small donation**. If you're part of a commercial company
 that prefers purchasing services over making voluntary donations, that's no problem. You can also **purchase offerings**
@@ -198,8 +202,9 @@ summary of alternative libraries that was reported by users and in replies to Op
 - [SURF](https://github.com/slaclab/surf)
 - [PSI Libraries](https://github.com/paulscherrerinstitute/psi_fpga_all)
 - [Colibri](https://gitlab.cern.ch/colibri/colibri)
+- [Taxi](https://github.com/fpganinja/taxi)
 
 If you are interested in my opinion what the pros and cons of those libraries are compared to Open Logic, contact me
-directly: [obruendl](oliver.bruendler@gmx.ch).
+directly: [obruendl](mailto:oli.bruendler@gmx.ch).
 
 If you are aware of any oder HDL standard libraries, please let me know as well so I can extend the list.

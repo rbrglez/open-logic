@@ -1,8 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 -- Copyright (c) 2019 by Paul Scherrer Institute, Switzerland
--- Copyright (c) 2024 by Oliver Bründler
--- All rights reserved.
--- Authors: Oliver Bruendler
+-- Copyright (c) 2024 by Oliver Bruendler
+-- Copyright (c) 2025 by Alexander Ruede
+-- Authors: Oliver Bruendler, Alexander Ruede
 ---------------------------------------------------------------------------------------------------
 
 ---------------------------------------------------------------------------------------------------
@@ -124,6 +124,7 @@ package olo_test_i2c_pkg is
         i2c         : olo_test_i2c_t;
         expData     : integer range -128 to 255;
         ack_output  : std_logic := i2c_ack;
+        timeout     : time      := 1 ms;
         clk_stretch : time      := 0 ns; -- only allowed in slave mode
         msg         : string    := "");
 
@@ -327,12 +328,14 @@ package body olo_test_i2c_pkg is
         i2c         : olo_test_i2c_t;
         expData     : integer range -128 to 255;
         ack_output  : std_logic := i2c_ack;
+        timeout     : time      := 1 ms;
         clk_stretch : time      := 0 ns;  -- only allowed in slave mode
         msg         : string    := "") is
         variable msg_v : msg_t := new_msg(i2c_expect_rx_byte_msg);
     begin
         push(msg_v, expData);
         push(msg_v, ack_output);
+        push(msg_v, timeout);
         push(msg_v, clk_stretch);
         push_string(msg_v, msg);
         send(net, i2c.p_actor, msg_v);
@@ -640,13 +643,14 @@ architecture a of olo_test_i2c_vc is
         signal scl  : inout std_logic;
         signal sda  : inout std_logic;
         msg         : in    string;
+        timeout     : in    time := 1 ms;
         clk_stretch : in    time := 0 ns) is
         variable rx_byte : std_logic_vector(7 downto 0) := (others => 'X');
     begin
 
         -- Do bits
         for i in 7 downto 0 loop
-            receive_bit_excl_clock(rx_byte(i), scl, sda, msg & " - Bit " & integer'image(7-i), clk_stretch => clk_stretch);
+            receive_bit_excl_clock(rx_byte(i), scl, sda, msg & " - Bit " & integer'image(7-i), timeout => timeout, clk_stretch => clk_stretch);
         end loop;
 
         check_equal(rx_byte, ExpData, msg & " - Received wrong byte");
@@ -998,6 +1002,7 @@ begin
                 -- Expect RX Byte
                 data        := pop(request_msg);
                 ack_output  := pop(request_msg);
+                timeout     := pop(request_msg);
                 clk_stretch := pop(request_msg);
                 msg_p       := new_string_ptr(pop_string(request_msg));
 
@@ -1022,6 +1027,7 @@ begin
                 else
                     expect_byte_excl_clock(data_slv, scl, sda,
                                            to_string(msg_p) & " - Receive byte in slave mode [I2cExpectRxByte]",
+                                           timeout     => timeout,
                                            clk_stretch => clk_stretch);
                     send_bit_excl_clock(ack_output, scl, sda,
                                         to_string(msg_p) & " - ACK in slave mode [I2cExpectRxByte]",

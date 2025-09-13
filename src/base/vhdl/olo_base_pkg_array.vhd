@@ -1,7 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 -- Copyright (c) 2018 by Paul Scherrer Institute, Switzerland
--- Copyright (c) 2024 by Oliver Bründler
--- All rights reserved.
+-- Copyright (c) 2024 by Oliver Bruendler
 -- Authors: Waldemar Koprek, Oliver Bruendler
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -72,6 +71,8 @@ package olo_base_pkg_array is
     function arrayInteger2Real (a : in IntegerArray_t) return RealArray_t;
     function arrayStdl2Bool (a : in std_logic_vector) return BoolArray_t;
     function arrayBool2Stdl (a : in BoolArray_t) return std_logic_vector;
+    function flattenStlvArray (a : in StlvArray_t) return std_logic_vector;
+    function unflattenStlvArray (a : in std_logic_vector; elementSize : positive) return StlvArray_t;
 
 end package;
 
@@ -118,6 +119,31 @@ package body olo_base_pkg_array is
         end loop;
 
         return Array_v;
+    end function;
+
+    function flattenStlvArray (a : in StlvArray_t) return std_logic_vector is
+        constant ElementSize_c  : natural := a(0)'length;
+        constant ElementCount_c : natural := a'length;
+        variable Flat_v         : std_logic_vector(ElementCount_c * ElementSize_c - 1 downto 0);
+    begin
+
+        for i in 0 to ElementCount_c - 1 loop
+            Flat_v((i + 1) * ElementSize_c - 1 downto i * ElementSize_c) := a(i);
+        end loop;
+
+        return Flat_v;
+    end function;
+
+    function unflattenStlvArray (a : in std_logic_vector; elementSize : positive) return StlvArray_t is
+        constant ElementCount_c : natural := a'length / elementSize;
+        variable Unflat_v       : StlvArray_t(0 to ElementCount_c - 1)(elementSize - 1 downto 0);
+    begin
+
+        for i in 0 to ElementCount_c - 1 loop
+            Unflat_v(i) := a((i + 1) * elementSize - 1 downto i * elementSize);
+        end loop;
+
+        return Unflat_v;
     end function;
 
 end package body;

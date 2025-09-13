@@ -18,6 +18,13 @@ entities:
       - name: "16bit"
         generics:
           Width_g: 16
+  # olo_base_arb_wrr
+  - entity_name: "olo_base_arb_wrr"
+    configurations:
+      - name: "g4-w8"
+        generics:
+          GrantWidth_g: 4
+          WeightWidth_g: 8
   # olo_base_cam
   - entity_name: "olo_base_cam"
     configurations:
@@ -67,6 +74,26 @@ entities:
         generics:
           DataWidth_g: 16
           Polynomial_g: '"1000000000000101"'   
+    # olo_base_crc_append
+  - entity_name: "olo_base_crc_append"
+    configurations:
+      - name: "16poly-16data"
+        generics:
+          DataWidth_g: 16
+          CrcPolynomial_g: '"1000000000000101"'   
+    # olo_base_crc_check
+  - entity_name: "olo_base_crc_check"
+    configurations:
+      - name: "16poly-16data-drop"
+        generics:
+          DataWidth_g: 16
+          CrcPolynomial_g: '"1000000000000101"'
+          Mode_g: '"DROP"'
+      - name: "16poly-16data-flag"
+        generics:
+          DataWidth_g: 16
+          CrcPolynomial_g: '"1000000000000101"'
+          Mode_g: '"FLAG"' 
   # olo_base_decode_firstbit
   - entity_name: "olo_base_decode_firstbit"
     configurations:
@@ -104,10 +131,16 @@ entities:
   # olo_base_fifo_packet
   - entity_name: "olo_base_fifo_packet"
     configurations:
-      - name: "d512-w16"
+      - name: "d512-w16-full"
         generics:
           Width_g: 16
-          Depth_g: 512 
+          Depth_g: 512
+          FeatureSet_g: '"FULL"'
+      - name: "d512-w16-drop"
+        generics:
+          Width_g: 16
+          Depth_g: 512
+          FeatureSet_g: '"DROP_ONLY"'
   # olo_base_fifo_sync
   - entity_name: "olo_base_fifo_sync"
     configurations:

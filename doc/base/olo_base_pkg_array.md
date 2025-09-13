@@ -67,3 +67,17 @@ function arrayBool2Stdl(a : in t_abool) return std_logic_vector;
 ```
 
 For _bool_ and _std_logic_vector_ '1' is converted to _true_ and '0' to _false_.
+
+### flattenStlvArray() / unflattenStlvArray()
+
+Flatten a _StlvArray_t_ into a _std_logic_vector_ or unflatten a _std_logic_vector_ into a _StlvArray_t_.
+
+```vhdl
+function flattenStlvArray(a : in StlvArray_t) return std_logic_vector;
+function unflattenStlvArray(a : in std_logic_vector; elementSize : positive) return StlvArray_t;
+```
+
+Note that the functions assume that the StlvArray_t is indexed using _(0 to N-1)_ and that the elements are indexed
+using _(N-1 downto 0)_.
+
+The mapping is that bit 0 of element 0 of the array is mapped to bit 0 of the resulting vector.

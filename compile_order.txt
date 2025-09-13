@@ -29,6 +29,8 @@ src/base/vhdl/olo_base_delay_cfg.vhd
 src/base/vhdl/olo_base_delay.vhd
 src/base/vhdl/olo_base_decode_firstbit.vhd
 src/base/vhdl/olo_base_crc.vhd
+src/base/vhdl/olo_base_crc_check.vhd
+src/base/vhdl/olo_base_crc_append.vhd
 src/base/vhdl/olo_base_cc_bits.vhd
 src/base/vhdl/olo_base_cc_reset.vhd
 src/base/vhdl/olo_base_fifo_async.vhd
@@ -42,6 +44,7 @@ src/base/vhdl/olo_base_cc_handshake.vhd
 src/base/vhdl/olo_base_cam.vhd
 src/base/vhdl/olo_base_arb_prio.vhd
 src/base/vhdl/olo_base_arb_rr.vhd
+src/base/vhdl/olo_base_arb_wrr.vhd
 src/axi/vhdl/olo_axi_pl_stage.vhd
 src/axi/vhdl/olo_axi_pkg_protocol.vhd
 src/axi/vhdl/olo_axi_master_simple.vhd
@@ -67,3 +70,6 @@ src/fix/vhdl/olo_fix_compare.vhd
 src/fix/vhdl/olo_fix_addsub.vhd
 src/fix/vhdl/olo_fix_add.vhd
 src/fix/vhdl/olo_fix_abs.vhd
+3rdParty/en_cl_fix/hdl/en_cl_fix_saturate.vhd
+3rdParty/en_cl_fix/hdl/en_cl_fix_round.vhd
+3rdParty/en_cl_fix/hdl/en_cl_fix_resize.vhd

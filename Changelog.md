@@ -2,6 +2,78 @@
 
 # Changelog
 
+## 4.1.0
+
+13-Sep-2025
+
+### Added Features
+
+- Added scoped constraints for _olo_base_ram_sdp_ to avoid timing violations being reported for
+  implementation with distributed RAM
+  - Contributed by: [tasgomes](https://github.com/tasgomes)
+
+- Added getSetBitIndex(), getLeadingSetBitIndex() and getTrailingSetBitIndex() functions to
+  _olo_base_pkg_logic_ for detecting first/last set bit in a std_logic_vector
+  - Contributed by: [rbrglez](https://github.com/rbrglez)
+  
+- Added _olo_base_arb_wrr_ Weighted Round Robin Arbiter
+  - Contributed by: [rbrglez](https://github.com/rbrglez)
+
+- Added runtime SCL frequency selection to _olo_intf_i2c_master_
+  - Contributed by: [aruede](https://github.com/aruede)
+
+- Added _DROP_ONLY_ mode to _olo_base_fifo_packet_
+  - Contributed by: [obruendl](https://github.com/obruendl)
+
+- Added _olo_base_crc_append_
+  - Contributed by: [obruendl](https://github.com/obruendl)
+
+- Added _olo_base_crc_check_
+  - Contributed by: [obruendl](https://github.com/obruendl)
+
+### Backward Compatible Changes
+
+- Various documentation improvements
+  - Some of them reported by: [rbrglez](https://github.com/rbrglez), [JimLewis](https://github.com/JimLewis),
+    [paebbels](https://github.com/paebbels)
+
+- Update to latest _en_cl_fix_ content available from [en_cl_fix](https://github.com/enclustra/en_cl_fix)
+
+- CI synthesis now also checks if there are any latches
+  - Contributed by: [obruendl](https://github.com/obruendl)
+
+### Non Backward Compatible Changes
+
+- None
+
+### Bugfixes (Backward Compatible)
+
+- Fix default value of _Out_RstIn_  in _olo_base_cc_status_
+  - Affected entities: _olo_base_cc_status_
+  - Contributed by: [AndrzejKowalski9917](https://github.com/AndrzejKowalski9917)
+
+- Make AXI verification components multi-instance capable
+  - Affected entities: _olo_test_axi_master_vc_, _olo_test_axi_slave_vc_
+  - Contributed by: [LukiLeu](https://github.com/LukiLeu)
+
+- Fix linter errors on Windows PCs
+  - Reported by: [LukiLeu](https://github.com/LukiLeu)
+
+### Reporters
+
+- [LukiLeu](https://github.com/LukiLeu)
+- [JimLewis](https://github.com/JimLewis)
+- [paebbels](https://github.com/paebbels)
+
+### Contributors
+
+- [obruendl](https://github.com/obruendl)
+- [rbrglez](https://github.com/rbrglez)
+- [LukiLeu](https://github.com/LukiLeu)
+- [aruede](https://github.com/aruede)
+- [tasgomes](https://github.com/tasgomes)
+- [AndrzejKowalski9917](https://github.com/AndrzejKowalski9917)
+
 ## 4.0.0
 
 26-Jun-2025
