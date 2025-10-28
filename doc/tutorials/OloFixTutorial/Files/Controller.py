@@ -91,7 +91,7 @@ class ControllerFloat(ControllerBase):
         # I Part
         i_1 = error*self._ki
         self._integrator += i_1
-        self._integrator = np.clip(-self._ilim, +self._ilim, self._integrator)
+        self._integrator = np.clip(self._integrator, -self._ilim, +self._ilim)
 
         # Output
         return self._integrator + p_part

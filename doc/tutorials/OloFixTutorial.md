@@ -22,7 +22,7 @@ Before you start into the tutorial, it is strongly suggested that you read throu
 **Note:** All files mentioned in the tutorial are stored in the folder
 _\<open-logic-root\>/doc/tutorials/OploFixTutorial/Files_.
 
-**Note:** The controller used in this tutorial is very basic hand not meant to be optimal in any way. The most simple
+**Note:** The controller used in this tutorial is very basic and not meant to be optimal in any way. The most simple
 controller implementation was chosen to let the user focus on the fixed-point aspects that are they key point in this
 tutorial.
 
@@ -42,12 +42,12 @@ The controller is running at 1 MSPS (i.e. calculates one sample every microsecon
 
 ## Step 1: Plant Model
 
-First, the RC-structure to be controlled must be modelled.
+First, the RC-structure to be controlled must be modeled.
 
 This model is used for simulation purposes only and will not be synthesized to the FPGA. Hence all tools and libraries
-avaialable in Pychon could be used. For example _scipy_ could be used to produce a model based on differential
+avaialable in Python could be used. For example _scipy_ could be used to produce a model based on differential
 equations. However, because this is a tutorial for FPGA development and not a Python course, a very simple fixed-step
-model is used in this  case
+model is used in this case.
 
 The model allows simulating the system with a fixed time-step and it allows changing the variable resistance of _R2_.
 
@@ -477,7 +477,7 @@ Note that formats are passed as strings (_to_string()_) to _olo_fix_ entities. T
 compatible as described in [olo_fix_principles](../fix/olo_fix_principles.md). Note that a verilog example for the
 tutorial is provided in [Appendix C](#appendix-c-verilog-rtl-implementation)
 
-Like all other Open Logic entities, _olo_fix_ entities are documented. For the code given above refer t
+Like all other Open Logic entities, _olo_fix_ entities are documented. For the code given above refer to
  [olo_fix_sub](../fix/olo_fix_sub.md).
 
 The _olo_fix_ entities used are fully pipelined. They can take one sample every clock cycle and as a result present the
@@ -549,7 +549,7 @@ The code was synthesized for a Zynq-7010 device (relatively slow Artix7 fabric) 
 | :--: | :--: | :---: | :-----: | :------------------------------------ |
 | 165  | 324  |   2   | 309 MHz | Saturation of output adder (3 levels) |
 
-309 MHz are a relatively high frequency for such a device. This demonstrates that _olo_fix_ is perfectly suited for
+309 MHz is a relatively high frequency for such a device. This demonstrates that _olo_fix_ is perfectly suited for
 implementing high performance processing (e.g. SDR or video processing).
 
 ## Step 7: VHDL Testbench
@@ -579,7 +579,7 @@ writer.write_cosim_file(target, FMT_IN, "InputTarget.fix")
 writer.write_cosim_file(control_values["EnClFix"], FMT_OUT, "Output.fix")
 ```
 
-Each _write_cosim_file()_ call writes a numy _np.ndarray_ of data into a file. The format is used to ensure the data
+Each _write_cosim_file()_ call writes a numpy _np.ndarray_ of data into a file. The format is used to ensure the data
 is properly quantized - and it is written into the file as well to check if it matches the expected number format on
 the VHDL side.
 
