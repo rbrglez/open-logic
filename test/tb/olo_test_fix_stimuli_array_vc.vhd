@@ -176,7 +176,7 @@ begin
         data <= (others  => (others => 'U'));
         random_v.InitSeed(random_v'instance_name);
 
-        -- Waiit for reset release
+        -- Wait for reset release
         wait until rising_edge(clk) and rst = '0';
 
         -- Loop though messages
@@ -197,7 +197,7 @@ begin
                 -- Open file and check format
                 file_open(data_file, to_string(file_path_p), read_mode);
 
-                -- Check format (first line)
+                -- Check dimension (first line)
                 readline(data_file, line_v);
                 read(line_v, dim_v);
                 assert dim_v = dim
@@ -205,6 +205,7 @@ begin
                            ", got " & to_string(dim_v) & " in file " & to_string(file_path_p)
                     severity error;
 
+                -- Check format (second line)
                 readline(data_file, line_v);
                 fmt_v := cl_fix_format_from_string(line_v.all);
                 assert fmt_v = fmt
@@ -216,7 +217,7 @@ begin
                 while not endfile(data_file) loop
                     -- Read line
                     readline(data_file, line_v);
-                    for i in dim - 1 downto 0 loop
+                    for i in 0 to dim - 1 loop
                         hread(line_v, data_slv, good);
                         assert good
                             report to_string(msg_p) & "- Failed to read from file" & to_string(file_path_p)
