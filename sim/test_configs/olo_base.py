@@ -324,6 +324,22 @@ def add_configs(olo_tb):
         for InvertOutput in [True, False]:
             named_config(tb, {'BitflipOutput_g': BitFlip, 'InvertOutput_g' : InvertOutput})
 
+    # Test Be feature
+    crc_tb = 'olo_base_crc_be_tb'
+    tb = olo_tb.test_bench(crc_tb)
+    for ByteOrder in ["MSB_FIRST", "LSB_FIRST"]:
+        for RandomStall in [True, False]:
+            CrcNames = ["CRC-8/DVB-S2", "CRC-16/DECT-X", "CRC-32/ISO-HDLC"]
+            for Crc in CrcNames:
+                for DataWidth in [16, 24, 32]:
+                    generics = {
+                        'ByteOrder_g'   : ByteOrder,
+                        'RandomStall_g' : RandomStall,
+                        'CrcName_g'     : Crc,
+                        'DataWidth_g'   : DataWidth
+                    }
+                    named_config(tb, generics)
+
     ### olo_base_crc_append ###
     crc_append_tb = 'olo_base_crc_append_tb'
     tb = olo_tb.test_bench(crc_append_tb)  
