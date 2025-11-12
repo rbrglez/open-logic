@@ -74,6 +74,14 @@ package olo_base_pkg_logic is
 
     function getTrailingSetBitIndex (vec : in std_logic_vector) return integer;
 
+    function extractEnabledBytes (
+        data       : in std_logic_vector;
+        byteEnable : in std_logic_vector) return std_logic_vector;
+
+    function packEnabledBytes (
+        data       : in std_logic_vector;
+        byteEnable : in std_logic_vector) return std_logic_vector;
+
     -- LFSR / CRC / PRBS Polynomials
     -- 1 for the x^n positions used
     constant Polynomial_Prbs2_c  : std_logic_vector( 1 downto 0) := "11";
@@ -336,6 +344,72 @@ package body olo_base_pkg_logic is
     function getTrailingSetBitIndex (vec : in std_logic_vector) return integer is
     begin
         return getSetBitIndex(vec, fromMsb => false);
+    end function;
+
+    function extractEnabledBytes (
+        data       : in std_logic_vector;
+        byteEnable : in std_logic_vector) return std_logic_vector is
+        variable ExtractedData_v : std_logic_vector(data'range) := (others => 'X');
+        variable High_v          : integer                      := byteEnable'low;
+        variable Low_v           : integer                      := byteEnable'low;
+        variable Ones_v          : integer                      := 0;
+    begin
+        assert data'length mod 8 = 0
+            report "extractEnabledBytes(): Data width must be a multiple of 8"
+            severity error;
+
+        assert byteEnable'length * 8 = data'length
+            report "extractEnabledBytes(): Number of data Bytes must match byteEnable length"
+            severity error;
+
+        assert byteEnable(Low_v) = '1'
+            report "extractEnabledBytes(): ByteEnable must have an asserted LSB"
+            severity error;
+
+        for i in byteEnable'range loop
+            if (byteEnable(i) = '1') then
+                High_v := i when i > High_v else High_v;
+                Ones_v := Ones_v + 1;
+            end if;
+        end loop;
+
+        assert Ones_v = High_v - Low_v + 1
+            report "extractEnabledBytes(): byteEnable asserts must be contiguous"
+            severity error;
+
+        ExtractedData_v(Ones_v * 8 - 1 downto 0) := data((High_v + 1) * 8 - 1 downto Low_v * 8);
+        return ExtractedData_v;
+    end function;
+
+    function packEnabledBytes (
+        data       : in std_logic_vector;
+        byteEnable : in std_logic_vector) return std_logic_vector is
+        variable PackedData_v : std_logic_vector(data'range) := (others => 'X');
+        variable Idx_v        : natural;
+    begin
+        assert data'length mod 8 = 0
+            report "packEnabledBytes(): Data width must be a multiple of 8"
+            severity error;
+
+        assert byteEnable'length * 8 = data'length
+            report "packEnabledBytes(): Number of data bytes must match byteEnable length"
+            severity error;
+
+        if (byteEnable = onesVector(byteEnable'length)) then
+            PackedData_v := data;
+
+        else
+
+            for i in 0 to byteEnable'length - 1 loop
+                if (byteEnable(i) = '1') then
+                    PackedData_v((Idx_v + 1) * 8 - 1 downto Idx_v * 8) := data((i + 1) * 8 - 1 downto i * 8);
+                    Idx_v                                              := Idx_v + 1;
+                end if;
+            end loop;
+
+        end if;
+
+        return PackedData_v;
     end function;
 
 end package body;
