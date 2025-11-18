@@ -1,0 +1,10 @@
+{signal: [
+  {name: 'Clk',          wave: 'P........', period:2},  
+  {name: 'In_Valid',     wave: '010101.0.', period:2},
+  {name: 'In_Data',      wave: 'x3x4x55x.', data:["0xCD11", "0x1122", "0x1122", "0xAB33"], period:2},
+  {name: 'In_Be',        wave: 'x3x4x55x.', data:["01", "11", "11", "01"], period:2},
+  {name: 'In_Last',      wave: '01010.10.', period:2},
+  {},
+  {name: 'Out_Valid',    wave: '0.1010.10', period:2},
+  {name: 'Out_Crc',      wave: 'x.3x4x55x', data:["0x87", "0x60", "0x60", "0x65"], period: 2},
+]}

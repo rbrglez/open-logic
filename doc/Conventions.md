@@ -217,6 +217,21 @@ mapping can be reconstructed easily at packet boundaries.
 
 ![TDM-Packet](./general/tdm_packet.png)
 
+### Trailing-Only Byte-Enable
+
+The **Trailing-Only Byte-Enable** convention defines how the byte-enable signal (_xxx_Be_) must behave
+during data transfers. For all non-final data beats (_xxx_Last_ = '0'), _xxx_Be_ must be fully asserted
+(all bits = '1'). Only on the final data beat (_xxx_Last_ = '1') may _xxx_Be_ be partially deasserted.
+In that case, the enabled bytes in _xxx_Data_ must form a single contiguous block starting from the least
+significant byte. Bit 0 of _xxx_Be_ must always be asserted and any additional asserted bits must
+appear consecutively above it, with no gaps.
+For example, with a 4-bit _xxx_Be_, the valid patterns on the final data-beat are:
+
+- _xxx_Be_ = _"1111"_
+- _xxx_Be_ = _"0111"_
+- _xxx_Be_ = _"0011"_
+- _xxx_Be_ = _"0001"_
+
 ## Testbenching
 
 ### VUnit
