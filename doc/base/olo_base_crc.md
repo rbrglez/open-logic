@@ -170,4 +170,5 @@ Three packets are processed:
 **Note:** _olo_base_crc_ is configured with _ByteOrder_g_ = "MSB_FIRST".
 Even with this setting, _In_Be_ still follows the
 [**Trailing-Only Byte-Enable**](../Conventions.md#trailing-only-byte-enable) convention.
-On the last data beat, the byte-enable is not _In_Be_ = "10", but _In_Be_ = "01".
+On the last data beat, the byte-enable is not _In_Be_ = "10", but _In_Be_ = "01". With "MSB_FIRST"
+the most significant byte out of the enabled ones (according to _In_Be_) is processed first.
