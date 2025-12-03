@@ -158,15 +158,22 @@ begin
                 end if;
 
                 -- Loop over all bits in symbol
-                for bit in InputHigh_v downto 0 loop
+                for bit in CrcWidth_c-1 downto 0 loop
 
-                    -- Input Handling
-                    InBit_v := Input_v(bit) xor Lfsr_v(Lfsr_v'high);
+                    -- Only execute for the valid bits in input. 
+                    -- The range of the loop could not be restricted due to Quartus II language
+                    -- restrictions.
+                    if bit <= InputHigh_v then
 
-                    -- XOR handling
-                    Lfsr_v := Lfsr_v(Lfsr_v'high-1 downto 0) & '0';
-                    if InBit_v = '1' then
-                        Lfsr_v := Lfsr_v xor Polynomial_g;
+                        -- Input Handling
+                        InBit_v := Input_v(bit) xor Lfsr_v(Lfsr_v'high);
+
+                        -- XOR handling
+                        Lfsr_v := Lfsr_v(Lfsr_v'high-1 downto 0) & '0';
+                        if InBit_v = '1' then
+                            Lfsr_v := Lfsr_v xor Polynomial_g;
+                        end if;
+
                     end if;
 
                 end loop;
