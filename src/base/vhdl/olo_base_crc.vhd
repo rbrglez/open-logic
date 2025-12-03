@@ -158,7 +158,7 @@ begin
                 end if;
 
                 -- Loop over all bits in symbol
-                for bit in CrcWidth_c-1 downto 0 loop
+                for bit in In_Data'high downto 0 loop
 
                     -- Only execute for the valid bits in input. 
                     -- The range of the loop could not be restricted due to Quartus II language
