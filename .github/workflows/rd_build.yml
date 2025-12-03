@@ -114,6 +114,12 @@ jobs:
           source $LOCAL_TOOLS
           cd ./doc/tutorials/LiberoTutorial/Files
           libero script:scripted_build_sv.tcl
+      # Cologne chip
+      - name: Cologne Chip VHDL
+        run: |
+          source $LOCAL_TOOLS
+          cd ./doc/tutorials/CologneChipTutorial/Files
+          source ./scripted_build.sh
 
   # Stopping the instance is not required (it stops automatically
   # when it is unused for some time, controlled by AWS alarm)
