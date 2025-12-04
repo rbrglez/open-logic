@@ -109,9 +109,12 @@ begin
 
             if (BeMode_c and In_Last = '1') then
                 BePlus_v                      := std_logic_vector(unsigned(In_Be) + 1);
+                -- synthesis translate_off
                 assert (In_Be and BePlus_v) = zerosVector(In_Be'length)
                     report "olo_base_crc: In_Be must have LSB asserted and all asserted bits must be contiguous. Trailing-Only Byte-Enable convention violated."
                     severity error;
+                -- synthesis translate_on
+
                 InputHigh_v := count(In_Be, '1') * 8 - 1;
 
                 -- Yosys cannot synthesize slices that use variable index ranges, for example:
@@ -150,13 +153,18 @@ begin
 
                 -- Report a warning when In_Be is used improperly
                 if (BeMode_c and In_Last = '0') then
+                    -- synthesis translate_off
                     assert In_Be = onesVector(In_Be'length)
                         report "olo_base_crc: In_Be is de-asserted while In_Last='0'. Trailing-Only Byte-Enable convention violated."
                         severity warning;
+                    -- synthesis translate_on
+
                 elsif (not(BeMode_c)) then
+                    -- synthesis translate_off
                     assert In_Be = onesVector(In_Be'length)
                         report "olo_base_crc: In_Be is ignored when DataWidth_g is not a multiple of 8."
                         severity warning;
+                    -- synthesis translate_on
                 end if;
 
                 -- First Handling
