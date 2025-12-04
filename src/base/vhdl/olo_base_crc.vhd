@@ -174,12 +174,11 @@ begin
                     Lfsr_v := LfsrReg;
                 end if;
 
-                -- Loop over all bits in symbol
+                -- Iterate over all bits of In_Data, including those disabled by In_Be
+                -- The loop bounds must be static, as variable ranges are not synthesizable
                 for bit in In_Data'high downto 0 loop
 
                     -- Only execute for the valid bits in input. 
-                    -- The range of the loop could not be restricted due to Quartus II language
-                    -- restrictions.
                     if bit <= InputHigh_v then
 
                         -- Input Handling
