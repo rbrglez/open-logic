@@ -112,8 +112,17 @@ begin
                 assert (In_Be and BePlus_v) = zerosVector(In_Be'length)
                     report "olo_base_crc: In_Be must have LSB asserted and all asserted bits must be contiguous. Trailing-Only Byte-Enable convention violated."
                     severity error;
-                InputHigh_v                   := count(In_Be, '1') * 8 - 1;
-                Input_v(InputHigh_v downto 0) := In_Data(InputHigh_v downto 0);
+                InputHigh_v := count(In_Be, '1') * 8 - 1;
+
+                -- Yosys cannot synthesize slices that use variable index ranges, for example:
+                --   Input_v(InputHigh_v downto 0) := In_Data(InputHigh_v downto 0)
+                -- Workaround: copy the data byte-by-byte inside a fixed-range loop
+                for i in 0 to In_Be'length - 1 loop
+                    if (i * 8 <= InputHigh_v) then
+                        Input_v((i + 1) * 8 - 1 downto i * 8) := In_Data((i + 1) * 8 - 1 downto i * 8);
+                    end if;
+                end loop;
+
             else
                 Input_v     := In_Data;
                 InputHigh_v := In_Data'high;
