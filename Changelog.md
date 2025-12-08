@@ -2,6 +2,64 @@
 
 # Changelog
 
+## 4.2.0
+
+09-Dec-2025
+
+### Added Features
+
+- Support for Yosys toolchain
+  - Synthesis attributes
+  - Addition of Yosys Cologne Chip synthesis to CI workflows
+  - Script to import Open Logic
+
+- Support for Cologne Chip FPGAs
+  - Yosys support (see above)
+  - Addition of Cologne Chip synthesis to CI workflows
+  - Tutorial
+
+- Added _olo_base_rate_limit_
+  - Contributed by: [obruendl](https://github.com/obruendl)
+
+### Backward Compatible Changes
+
+- Various documentation improvements
+  - Some of them reported by: [rickhg12hs](https://github.com/rickhg12hs),
+  [fpgauserdude](https://github.com/fpgauserdude)
+
+- Improvement of scoped constraints (Vivado) for _olo_intf_sync_
+  - Contributed by: [tasgomes](https://github.com/tasgomes)
+
+- Add optional byte-enables to _olo_base_crc_
+  - Contributed by: [rbrglez](https://github.com/rbrglez)
+
+### Non Backward Compatible Changes
+
+- None
+
+### Bugfixes (Backward Compatible)
+
+- Fix scooped constraints (Vivado) for olo_base_ram_sdp when implemented with distributed RAM
+  - Affected entities: _olo_base_ram_sdp_
+  - Contributed by: [LukiLeu](https://github.com/LukiLeu), [tasgomes](https://github.com/tasgomes)
+
+- Fix half-bit-slip in _olo_intf_uart_ depending on exact bit timing
+  - Affected entities: _olo_intf_uart_
+  - Reported by: [jonpovey](https://github.com/jonpovey)
+
+### Reporters
+
+- [rickhg12hs](https://github.com/rickhg12hs)
+- [fpgauserdude](https://github.com/fpgauserdude)
+- [jonpovey](https://github.com/jonpovey)
+
+### Contributors
+
+- [obruendl](https://github.com/obruendl)
+- [rbrglez](https://github.com/rbrglez)
+- [tasgomes](https://github.com/tasgomes)
+- [LukiLeu](https://github.com/LukiLeu)
+
 ## 4.1.0
 
 13-Sep-2025
