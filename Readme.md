@@ -173,6 +173,14 @@ tool-cost.
 
 See [Contributing](./Contributing.md).
 
+## Sponsors
+
+Major sponsors of the project are:
+
+| Sponsor  | Logo |
+|----------|----------|
+| [NLnet](https://nlnet.nl/) |  <img src="./doc/pics/nlnet.jpg" alt="Logo" width="200">|
+
 ## Origin of the Project
 
 The _Open Logic_ project is based on the
