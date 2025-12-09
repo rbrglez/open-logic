@@ -35,7 +35,7 @@ many commonly used CRCs are listed.
 | Polynomial_g    | std_logic_vector | -           | CRC Polynomial according to the notation in [crccalc.com](https://crccalc.com) - which matches the comon-sense.<br />MSB left. For good readability use hex notation (e.g. _x"D5"_) <br />Width of the CRC is the number of bits in the Polynomial.<br />For details, see [Architecture](#architecture) |
 | InitialValue_g  | std_logic_vector | all '0'     | Initial value to load into the LFSR before the first data word arrives.<br />MSB left. For good readability use hex notation (e.g. _x"D5"_) |
 | BitOrder_g      | string           | "MSB_FIRST" | The input can be processed "MSB_FIRST" or "LSB_FIRST".<br />"MSB_FIRST" - Most significant bit is shifted into LFSR first<br />"LSB_FIRST" - Least significant bit is shifted into LFSR first |
-| ByteOrder_g     | string           | "NONE"      | This generic allows byte-wise processing of the input if required.<br />"NONE" - No byte-wise processing, the whole input is interpreted as one word<br />"MSB_FIRST" - Most significant byte of the input is shifted into the LFSR first. <br />"MSB_FIRST" -  Least significant byte of the input is shifted into the LFSR first. <br />For any other values than "NONE" the setting of _BitOrder_g_ is applied to the ordering of bits within each byte.<br>**Note:** Other values than "NONE" are only allowed if _DataWidth_g_ is a multiple of 8 |
+| ByteOrder_g     | string           | "NONE"      | This generic allows byte-wise processing of the input if required.<br />"NONE" - No byte-wise processing, the whole input is interpreted as one word<br />"MSB_FIRST" - Most significant byte of the input is shifted into the LFSR first. <br />"LSB_FIRST" -  Least significant byte of the input is shifted into the LFSR first. <br />For any other values than "NONE" the setting of _BitOrder_g_ is applied to the ordering of bits within each byte.<br>**Note:** Other values than "NONE" are only allowed if _DataWidth_g_ is a multiple of 8 |
 | BitflipOutput_g | boolean          | false       | If set to _true_ the LFSR content is bit-flipped (MSB to LSB and vice-versa) for output through _Out_Crc_. |
 | XorOutput_g     | std_logic_vector | all '0'     | XOR mask to apply to the output. This is required for certain standards according to [crccalc.com](https://crccalc.com). <br> The XOR mask is applied after bitflip in case of _BitFlipOutput_g=true_. |
 
@@ -60,13 +60,14 @@ specifications.
 
 ### Input Data
 
-| Name     | In/Out | Length        | Default | Description                                                  |
-| :------- | :----- | :------------ | ------- | :----------------------------------------------------------- |
-| In_Data  | in     | _DataWidth_g_ | -       | Input data                                                   |
-| In_Valid | in     | 1             | '1'     | AXI4-Stream handshaking signal for _In_Data_                 |
-| In_Ready | out    | 1             | -       | AXI4-Stream handshaking signal for _In_Data_                 |
-| In_Last  | in     | 1             | '0'     | AXI4-Stream packet end signaling for _In_Data_               |
-| In_First | in     | 1             | '0'     | In case a packet is aborted/finished without a _In_Last_ this bit can be pulled high on the first _In_Data_ word of the next packet to signal the start of a new packet. |
+| Name     | In/Out | Length          | Default | Description                                                  |
+| :------- | :----- | :-------------- | ------- | :----------------------------------------------------------- |
+| In_Data  | in     | _DataWidth_g_   | -       | Input data                                                   |
+| In_Valid | in     | 1               | '1'     | AXI4-Stream handshaking signal for _In_Data_                 |
+| In_Ready | out    | 1               | -       | AXI4-Stream handshaking signal for _In_Data_                 |
+| In_Last  | in     | 1               | '0'     | AXI4-Stream packet end signaling for _In_Data_               |
+| In_First | in     | 1               | '0'     | In case a packet is aborted/finished without a _In_Last_ this bit can be pulled high on the first _In_Data_ word of the next packet to signal the start of a new packet. |
+| In_Be    | in     | _DataWidth_g/8_ | All '1' | Byte-enables<br>Ignored if _DataWidth_g_ mod 8 /= 0<br>May be de-asserted only when In_Last = '1'<br> When de-asserted, it must follow the LSB-first convention: the LSB bit must always be asserted and all asserted bits must be contiguous (no gaps). |
 
 ### Output Data
 
@@ -91,7 +92,7 @@ combinations.
 
 | In_Data               | BitOrder_g  | ByteOrder_g          | LFSR Input (first bit left) |
 | --------------------- | ----------- | -------------------- | --------------------------- |
-| "0001_0011_0111_1111" | "MSB_FIRST" | "NONE" / "MSB_FIRST" | 0000 0011 0111 1111         |
+| "0001_0011_0111_1111" | "MSB_FIRST" | "NONE" / "MSB_FIRST" | 0001 0011 0111 1111         |
 | "0001_0011_0111_1111" | "LSB_FIRST" | "NONE" / "LSB_FIRST" | 1111 1110 1100 1000         |
 | "0001_0011_0111_1111" | "MSB_FIRST" | "LSB_FIRST"          | 0111 1111 0001 0011         |
 | "0001_0011_0111_1111" | "LSB_FIRST" | "MSB_FIRST"          | 1100 1000 1111 1110         |
@@ -139,3 +140,35 @@ The following points are worth mentioning:
 - _Out_Crc_ is updated exactly one clock cycle after the input data being transferred
 - The first packet shows backpressure (propagation of _Out_Ready_ to _In_Ready_)
 - The second packet is not terminated by _In_Last_ and the start of the third packet is indicated by _In_First_
+
+### Byte enables
+
+_In_Be_ **MUST** follow the [**Trailing-Only Byte-Enable**](../Conventions.md#trailing-only-byte-enable) convention.
+If it doesn't it will result in simulation errors and undefined behavior in synthesis.
+
+For example, if _In_Be_ is 4 bits wide,
+the valid values on the last data-beat (_In_Last_ = '1') are:
+
+- _In_Be_ = _"1111"_
+- _In_Be_ = _"0111"_
+- _In_Be_ = _"0011"_
+- _In_Be_ = _"0001"_
+
+The example below shows a 16 bit input data bus. For simplicity, the
+signals _In_Ready_, _Out_Ready_ and _In_First_ are not shown, but they are fully
+supported in the implementation. The _olo_base_crc_ in this example uses "MSB_FIRST" byte order and
+the CRC-8/DVB-S2 algorithm.
+
+Three packets are processed:
+
+- **Packet1**: 1 byte (CRC proccesses byte _0x11_)
+- **Packet2**: 2 bytes (CRC proccesses _0x11_,  then _0x22_)
+- **Packet3**: 3 bytes (CRC proccesses _0x11_, then _0x22_ and finally _0x33_)
+
+![.Waveform](./misc/olo_base_crc_be_wave.png)
+
+**Note:** _olo_base_crc_ is configured with _ByteOrder_g_ = "MSB_FIRST".
+Even with this setting, _In_Be_ still follows the
+[**Trailing-Only Byte-Enable**](../Conventions.md#trailing-only-byte-enable) convention.
+On the last data beat, the byte-enable is not _In_Be_ = "10", but _In_Be_ = "01". With "MSB_FIRST"
+the most significant byte out of the enabled ones (according to _In_Be_) is processed first.

@@ -1,0 +1,8 @@
+# GHDL files
+*.cf
+
+# Yosys generated files
+*.json
+*.log
+*.bit
+impl.txt

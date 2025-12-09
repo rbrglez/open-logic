@@ -79,7 +79,7 @@ class Plant:
         """
         self._r2 = value
 
-# Main functio nto try out the model
+# Main function to try out the model
 if __name__ == "__main__":
     p = Plant(1.0e-6)
 

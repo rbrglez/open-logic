@@ -1,6 +1,6 @@
 CAPI=2:
 
-name : "open-logic:open-logic:base:4.1.0"
+name : "open-logic:open-logic:base:4.2.0"
 description : "stable release (downloaded from GitHub); Basic Circuitry (e.g. FIFOs, CDCs, ...) see https://github.com/open-logic/open-logic/blob/main/doc/EntityList.md#base"
 
 filesets:
@@ -25,6 +25,7 @@ filesets:
       - "src/base/vhdl/olo_base_prbs.vhd"
       - "src/base/vhdl/olo_base_tdm_mux.vhd"
       - "src/base/vhdl/olo_base_cc_handshake.vhd"
+      - "src/base/vhdl/olo_base_rate_limit.vhd"
       - "src/base/vhdl/olo_base_pkg_string.vhd"
       - "src/base/vhdl/olo_base_pkg_array.vhd"
       - "src/base/vhdl/olo_base_flowctrl_handler.vhd"
@@ -69,5 +70,5 @@ provider:
   name    : github
   user    : open-logic
   repo    : open-logic
-  version : 4.1.0
+  version : 4.2.0
   

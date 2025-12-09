@@ -8,6 +8,7 @@ from ToolVivado import ToolVivado
 from ToolGowin import ToolGowin
 from ToolEfinity import ToolEfinity
 from ToolLibero import ToolLibero
+from ToolCologne import ToolCologne
 from ResourceResults import ResourceResults
 from EntityCollection import EntityCollection
 import os
@@ -18,8 +19,8 @@ from datetime import datetime
 
 # Argument parser setup
 parser = argparse.ArgumentParser(description="Run inference tests with specified tools, top-levels, and configurations.")
-parser.add_argument("--tool", type=str, choices=["vivado", "quartus", "gowin", "efinity", "libero"],
-                    help="Specify the tool to use for synthesis (e.g., vivado, quartus, etc.).", required=False)
+parser.add_argument("--tool", type=str,
+                    help="Specify the tool to use for synthesis (e.g., vivado, quartus, gowin, efinity, libero, cologne etc.).", required=False)
 parser.add_argument("--entity", type=str,
                     help="Specify the name of the entity to test (e.g., test_olo_base_ram_sdp).", required=False)
 parser.add_argument("--config", type=str,
@@ -79,12 +80,17 @@ tools = {"quartus" : ToolQuartus(),
          "vivado"  : ToolVivado(),
          "gowin"   : ToolGowin(),
          "efinity" : ToolEfinity(),
-         "libero"  : ToolLibero()}
+         "libero"  : ToolLibero(),
+         "cologne" : ToolCologne()}
 if args.tool:
-    if args.tool in tools:
-        tools = {args.tool: tools[args.tool]}
-    else:
-        raise ValueError(f"Invalid --tool: {args.tool}")
+    sel_tools = args.tool.split(",")
+    tool_new = {}
+    for t in sel_tools:
+        if t in tools:
+            tool_new[t] = tools[t]
+        else:
+            raise ValueError(f"Invalid --tool: {t}")
+    tools = tool_new
 
 if __name__ == '__main__':
 
@@ -111,6 +117,11 @@ if __name__ == '__main__':
                     print(f"  > Tool: {tool_name}")
                     resource_results = ResourceResults()
 
+                    #Ckip omitted entities
+                    if tool_name in top_file.toolOmit:
+                        print(f"    - Omitted: {top_file.toolOmit[tool_name]}")
+                        continue
+
                     #Select config
                     configs = top_file.get_configs()
                     if args.config:
@@ -127,7 +138,7 @@ if __name__ == '__main__':
                         top_file.create_syn_file(out_file=SYN_FILE, entity_collection=ec, config_name=config, tool_name=tool_name)
                         #Execute synthesis
                         if not args.dry_run:
-                            tool.sythesize(files=[SYN_FILE, IN_REDUCE_FILE, OUT_REDUCE_FILE], top_entity="test")
+                            tool.sythesize(files=[IN_REDUCE_FILE, OUT_REDUCE_FILE, SYN_FILE], top_entity="test")
                             #Calculate real resources
                             in_red_size, out_red_size = top_file.get_last_syn_reduction()
                             resources_measured = tool.get_resource_usage()

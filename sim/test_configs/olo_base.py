@@ -324,6 +324,22 @@ def add_configs(olo_tb):
         for InvertOutput in [True, False]:
             named_config(tb, {'BitflipOutput_g': BitFlip, 'InvertOutput_g' : InvertOutput})
 
+    # Test Be feature
+    crc_tb = 'olo_base_crc_be_tb'
+    tb = olo_tb.test_bench(crc_tb)
+    for ByteOrder in ["MSB_FIRST", "LSB_FIRST"]:
+        for RandomStall in [True, False]:
+            CrcNames = ["CRC-8/DVB-S2", "CRC-16/DECT-X", "CRC-32/ISO-HDLC"]
+            for Crc in CrcNames:
+                for DataWidth in [16, 24, 32]:
+                    generics = {
+                        'ByteOrder_g'   : ByteOrder,
+                        'RandomStall_g' : RandomStall,
+                        'CrcName_g'     : Crc,
+                        'DataWidth_g'   : DataWidth
+                    }
+                    named_config(tb, generics)
+
     ### olo_base_crc_append ###
     crc_append_tb = 'olo_base_crc_append_tb'
     tb = olo_tb.test_bench(crc_append_tb)  
@@ -343,3 +359,18 @@ def add_configs(olo_tb):
     tb = olo_tb.test_bench(crc_append_check_tb)  
     for Mode in ["DROP", "FLAG"]:
         named_config(tb, {'CheckMode_g': Mode})
+
+    ### olo_base_rate_limit ###
+    rate_limit_tb = 'olo_base_rate_limit_tb'
+    tb = olo_tb.test_bench(rate_limit_tb)
+    tb_configs = {'RegisterReady_g': True,
+                  'RandomStall_g': False,
+                  'Width_g': 16}
+    # Test different Period/MaxSamples combinations
+    for Period, MaxSamples in [(5, 5), (5, 3), (5, 1), (1, 1)]:
+        for Mode in ["SMOOTH", "BLOCK"]:
+            named_config(tb,tb_configs | {'Mode_g': Mode, 'Period_g': Period, 'MaxSamples_g': MaxSamples, 'RandomStall_g': True})
+            named_config(tb,tb_configs | {'Mode_g': Mode, 'Period_g': Period, 'MaxSamples_g': MaxSamples, 'RandomStall_g': False})
+    # Test a different value for static settings
+    named_config(tb,tb_configs | {'RegisterReady_g': False, 'Width_g': 8, 'RuntimeCfg_g' : False, 'Mode_g' : "SMOOTH"})
+    named_config(tb,tb_configs | {'RegisterReady_g': False, 'Width_g': 8, 'RuntimeCfg_g' : False, 'Mode_g' : "BLOCK"})

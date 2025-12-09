@@ -73,25 +73,29 @@ package body olo_fix_pkg is
     function fixImplementReg (
         logicPresent : boolean;
         regMode      : string) return boolean is
-        constant RegMode_c : string := toLower(regMode);
+        constant RegMode_c : string  := toLower(regMode);
+        variable Result_v  : boolean := false;
     begin
 
         -- Calculate register requirement
         if RegMode_c = "yes" then
-            return true;
+            Result_v := true;
         elsif RegMode_c = "no" then
-            return false;
+            Result_v := false;
         elsif RegMode_c = "auto" then
-            return logicPresent;
+            Result_v := logicPresent;
         -- coverage off
-        -- unrechable
+        -- unreachable
         else
+            -- synthesis translate_off
             assert false
                 report "olo_fix - Invalid register mode '" & regMode & "' - must be YES, NO or AUTO"
                 severity failure;
-            return false;
-        -- coverage on
+            -- synthesis translate_on
+            -- coverage on
         end if;
+
+        return Result_v;
 
     end function;
 

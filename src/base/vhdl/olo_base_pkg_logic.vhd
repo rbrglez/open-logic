@@ -192,10 +192,10 @@ package body olo_base_pkg_logic is
         constant Pwr2Width_c : integer := 2**Stages_c;
 
         -- Types
-        type StageOut_t is array (natural range <>) of std_logic_vector(Pwr2Width_c - 1 downto 0);
+        type StageOut_t is array (natural range <>) of std_logic_vector(Pwr2Width_c downto 0);
 
         -- Variables
-        variable StageOut_v : StageOut_t(0 to Stages_c);
+        variable StageOut_v : StageOut_t(0 to Stages_c) := (others => (others => '0'));
         variable BinCnt_v   : unsigned(Pwr2Width_c - 1 downto 0);
     begin
         StageOut_v(0)                          := (others => '0');
@@ -290,9 +290,11 @@ package body olo_base_pkg_logic is
     begin
 
         -- Check input width
+        -- synthesis translate_off
         assert inp'length mod 8 = 0
             report "invertByteOrder(): Number of bits must be a multiple of 8"
             severity error;
+        -- synthesis translate_on
 
         -- Invert byte order
         for byte in 0 to Bytes_c-1 loop

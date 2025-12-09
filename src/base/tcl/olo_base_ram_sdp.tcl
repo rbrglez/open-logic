@@ -13,19 +13,23 @@
 # This path can be safely ignored in order for timing to pass because the logic of the async FIFO
 # can never generate the same read and write addresses during active read and write operations.
 # This is not needed for BRAM since the first read data register is located in the BRAM primitive.
-set ram_type [expr {[regexp {LUTRAM} [get_property PRIMITIVE_SUBGROUP [get_cells -hierarchical g_async.Mem_v*]]] ? "LUTRAM" : ""}]
+set mem_cells [get_cells -hierarchical g_async.Mem_v* -quiet]
 
-if {$ram_type eq "LUTRAM"} {
-    set launch_clk [get_clocks -of_objects [get_cell -hierarchical g_async.Mem_v*]]
-    set latch_clk [get_clocks -of_objects [get_cell -hierarchical g_async.RdPipe_reg[1][*]]]
+if {[llength $mem_cells] > 0} {
+  set ram_type [expr {[regexp {LUTRAM} [get_property PRIMITIVE_SUBGROUP $mem_cells]] ? "LUTRAM" : ""}]
 
-    set period [get_property -min PERIOD [get_clocks "$launch_clk $latch_clk"]]
+  if {$ram_type eq "LUTRAM"} {
+      set launch_clk [get_clocks -of_objects [get_cell -hierarchical g_async.Mem_v*]]
+      set latch_clk [get_clocks -of_objects [get_cell -hierarchical g_async.RdPipe_reg[1][*]]]
 
-    set_max_delay -from $launch_clk -to [get_cell -hierarchical g_async.RdPipe_reg[1][*]] -datapath_only $period
+      set period [get_property -min PERIOD [get_clocks "$launch_clk $latch_clk"]]
 
-    # Waive "LUTRAM read/write potential collision" CDC warning from "report_cdc" command.
-    create_waiver -type CDC -id "CDC-26" \
-      -from [get_pins *.i_ram/g_async.Mem_v*/*/CLK] \
-      -to [get_pins *.i_ram/g_async.RdPipe_reg[1][*]/D] \
-      -description "Read/Write logic (like for Async FIFO) should ensure no collision"
+      set_max_delay -from $launch_clk -to [get_cell -hierarchical g_async.RdPipe_reg[1][*]] -datapath_only $period
+
+      # Waive "LUTRAM read/write potential collision" CDC warning from "report_cdc" command.
+      create_waiver -type CDC -id "CDC-26" \
+        -from [get_pins *.i_ram/g_async.Mem_v*/*/CLK] \
+        -to [get_pins *.i_ram/g_async.RdPipe_reg[1][*]/D] \
+        -description "Read/Write logic (like for Async FIFO) should ensure no collision"
+  }
 }

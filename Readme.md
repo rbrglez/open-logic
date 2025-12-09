@@ -17,7 +17,9 @@ _Open Logic_ implements commonly used components in a reusable and vendor/tool-i
 permissive open source license (LGPL with exceptions for FPGA usage, see [License.txt](./License.txt)), so the code
 can be used in commercial projects.
 
-_Open Logic_ is written in VHDL-2008 but can also be used from System Verilog easily.
+_Open Logic_ is written in VHDL-2008 but can also be used from System Verilog easily. Limitations for cross-language
+instantiation are documented in the [How To...](./doc/HowTo.md) - read through it before using _Open Logic_
+from Verilog.
 
 Browse the [**Entity List**](./doc/EntityList.md) to see what is available.
 
@@ -95,6 +97,7 @@ user-code.
   - [Questa Tutorial](./doc/tutorials/QuestasimTutorial.md) - for VHDL and System Verilog
   - [Libero Tutorial](./doc/tutorials/LiberoTutorial.md) - for VHDL and System Verilog
   - [Gowin Tutorial](./doc/tutorials/GowinTutorial.md) - for VHDL and System Verilog
+  - [Cologne Chip Tutorial](./doc/tutorials/CologneChipTutorial.md) - for VHDL only
   - [Fixed Point Mathematics Tutorial](./doc/tutorials/OloFixTutorial.md)
     - Fixed-point bit-true modeling in Python
     - _Open Logic_ based fixed-point implementation in HDL
@@ -169,6 +172,14 @@ tool-cost.
 ## How to Contribute
 
 See [Contributing](./Contributing.md).
+
+## Sponsors
+
+Major sponsors of the project are:
+
+| Sponsor  | Logo |
+|----------|----------|
+| [NLnet](https://nlnet.nl/) |  <img src="./doc/pics/nlnet.jpg" alt="Logo" width="200">|
 
 ## Origin of the Project
 

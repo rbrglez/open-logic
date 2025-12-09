@@ -8,6 +8,8 @@
 
 AKA Table of Content
 
+- General Topics
+  - [Use Open Logic from Verilog](#use-open-logic-from-verilog)
 - Tool Integration Related
   - [Use Open Logic in a Gowin Project](#use-open-logic-in-a-gowin-project)
   - [Use Open Logic in a Microchip Libero Project](#use-open-logic-in-a-microchip-libero-project)
@@ -15,6 +17,7 @@ AKA Table of Content
   - [Use Open Logic in a Efinix Efinity Project](#use-open-logic-in-a-efinix-efinity-project)
   - [Use Open Logic in a AMD Vivado Project](#use-open-logic-in-a-amd-vivado-project)
   - [Use Open Logic in a altera Quartus Project](#use-open-logic-in-a-altera-quartus-project)
+  - [Use Open Logic in a Yosys / oss-cad-suite Project](#use-open-logic-in-a-yosys--oss-cad-suite-project)
   - [Use Open Logic through FuseSoC](#use-open-logic-through-fusesoc)
 - Contribution Related
   - [Use the Linter](#use-the-linter)
@@ -22,6 +25,41 @@ AKA Table of Content
   - [Run Simulations](#run-simulations)
   - [Analyze Coverage](#analyze-coverage)
   - [Update Badges](#update-badges)
+
+## Use Open Logic from Verilog
+
+### Input Port Default Values
+
+Not all tools apply input port default values correctly when doing cross-language instantiation. For example Vivado
+seems to assign zero to unconnected ports instead of the default value given in the instantiated entity.
+
+To avoid issues, do **NOT** rely on default port values when instantiating _Open Logic_ entities from Verilog but
+assign all input ports explicitly. For unused ports, assign the default value given in the documentation explicitly.
+
+Example:
+
+```vhdl
+olo_base_wconv_xn2n
+#(
+    .InWidth_g  (256),
+    .OutWidth_g (128))
+i_wconf
+(
+    .Clk (clk),
+    .Rst (rst),
+    .In_Valid (ivalid)
+    .In_Ready (iready),
+    .In_Data (idata),
+    .In_WordEna (2'b11),
+    .In_Last (0)
+    .Out_Valid (ovalid),
+    .Out_Ready (oready),
+    .Out_Data (odata)
+);
+```
+
+Without the explicit assignment of `.In_WordEna (2'b11)` this example does not synthesize correctly although the
+default port value is set to `(others => '1')`in VHDL.
 
 ## Use Open Logic in a Gowin Project
 
@@ -168,6 +206,26 @@ That's it. Nothing more.
 Because Quartus does not support scoped constraints, **NO** constraints are imported. They have to be created
 manually - more information can be found in the documentation of individual _Open Logic_ entities which require
 constraints.
+
+## Use Open Logic in a Yosys / oss-cad-suite Project
+
+There is a script to compile all _Open Logic_ sources into a Yosys project.
+
+To run the script, follow the steps below:
+
+1. In a shell, navigate to the working directory of your _oss-cad-suite_ project
+2. Execute teh command 'python3 <open-logic-root>/tools/yosys/compile_olo.py'
+
+That's it. From there on Open Logic can be used in your project.
+
+An example of this flow is available in the [Cologne Chip Tutorial](./tutorials/CologneChipTutorial.md).
+
+Note: By default Open Logic is compiled into the library _olo_. If you want to use another library, pass the name of
+the target library through the '--library=<library-name>' argument to the script.
+
+> [!WARNING]
+> True dual port RAM (_olo_base_ram_tdp_) is _NOT_ supported on **Cologne Chip** FPGAs. Please use _olo_base_ram_sdp_
+> instead.
 
 ## Use Open Logic through FuseSoC
 
