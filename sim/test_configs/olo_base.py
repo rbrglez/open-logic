@@ -347,6 +347,7 @@ def add_configs(olo_tb):
         "Crc8_DvbS2_c",
         "Crc8_Autosar_c",
         "Crc8_Bluetooth_c",
+        "Crc16_DectR_c",
         "Crc16_DectX_c",
         "Crc32_IsoHdlc_c"
     ]
