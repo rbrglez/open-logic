@@ -14,8 +14,11 @@ VHDL Source: [olo_base_pkg_crc](../../src/base/vhdl/olo_base_pkg_crc.vhd)
 
 ## Description
 
-This package contains utility definitions related to CRC not defined in IEEE packages but used  by _Open Logic_ internally or on its interfaces to the user (e.g. for port-widths depending on generics). The package is written mainly for these
-purposes and does not aim for completeness - nevertheless as a user you are free to use it for your code of course.
+This package contains utility definitions related to CRC not defined in IEEE
+packages but used  by _Open Logic_ internally or on its interfaces to the user
+(e.g. for port-widths depending on generics). The package is written mainly for
+these purposes and does not aim for completeness - nevertheless as a user you
+are free to use it for your code of course.
 
 ## Definitions
 
@@ -23,7 +26,9 @@ purposes and does not aim for completeness - nevertheless as a user you are free
 
 All CRC Algorithm Constants are of type _CrcSettings_r_, as defined in this package.
 
-The table below lists the CRC Algorithms currently provided by this package. Their parameter definitions were sourced from [crccalc.com](https://crccalc.com/?crc=Open-Logic&method=&datatype=ascii&outtype=hex).
+The table below lists the CRC Algorithms currently provided by this package.
+Their parameter definitions were sourced from [crccalc.com]
+(https://crccalc.com/?crc=Open-Logic&method=&datatype=ascii&outtype=hex).
 Additional standard CRC definitions can also be found on the same site.
 
 | CRC Constant Name    | CRC Standard    | polynomial   | initialValue   | bitOrder    | bitflipOutput   | xorOutput   |
