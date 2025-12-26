@@ -340,6 +340,12 @@ def add_configs(olo_tb):
                     }
                     named_config(tb, generics)
 
+    ### olo_base_pkg_crc ###
+    pkg_crc_tb = 'olo_base_pkg_crc_tb'
+    tb = olo_tb.test_bench(pkg_crc_tb)
+    for CrcName in ["Crc8_DvbS2_c", "Crc16_DectX_c", "Crc32_IsoHdlc_c"]:
+        named_config(tb, {"CrcName_g" : CrcName})
+
     ### olo_base_crc_append ###
     crc_append_tb = 'olo_base_crc_append_tb'
     tb = olo_tb.test_bench(crc_append_tb)  
