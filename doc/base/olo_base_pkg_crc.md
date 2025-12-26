@@ -27,8 +27,8 @@ are free to use it for your code of course.
 All CRC Algorithm Constants are of type _CrcSettings_r_, as defined in this package.
 
 The table below lists the CRC Algorithms currently provided by this package.
-Their parameter definitions were sourced from [crccalc.com]
-(https://crccalc.com/?crc=Open-Logic&method=&datatype=ascii&outtype=hex).
+Their parameter definitions were sourced from
+[crccalc.com](https://crccalc.com/?crc=Open-Logic&method=&datatype=ascii&outtype=hex).
 Additional standard CRC definitions can also be found on the same site.
 
 | CRC Constant Name    | CRC Standard    | polynomial   | initialValue   | bitOrder    | bitflipOutput   | xorOutput   |
