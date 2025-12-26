@@ -19,11 +19,6 @@
 ---------------------------------------------------------------------------------------------------
 library ieee;
     use ieee.std_logic_1164.all;
-    use ieee.numeric_std.all;
-
--- TODO: Remove?
-library work;
-    use work.olo_base_pkg_math.all;
 
 ---------------------------------------------------------------------------------------------------
 -- Package Header
