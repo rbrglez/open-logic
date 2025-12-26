@@ -1,16 +1,16 @@
 <img src="../Logo.png" alt="Logo" width="400">
 
-# olo_intf_byte_stream_bridge
+# olo_axi_byte_stream_bridge
 
 [Back to **Entity List**](../EntityList.md)
 
 ## Status Information
 
-![Endpoint Badge](https://img.shields.io/endpoint?url=https://storage.googleapis.com/open-logic-badges/coverage/olo_intf_byte_stream_bridge.json?cacheSeconds=0)
-![Endpoint Badge](https://img.shields.io/endpoint?url=https://storage.googleapis.com/open-logic-badges/branches/olo_intf_byte_stream_bridge.json?cacheSeconds=0)
-![Endpoint Badge](https://img.shields.io/endpoint?url=https://storage.googleapis.com/open-logic-badges/issues/olo_intf_byte_stream_bridge.json?cacheSeconds=0)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https://storage.googleapis.com/open-logic-badges/coverage/olo_axi_byte_stream_bridge.json?cacheSeconds=0)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https://storage.googleapis.com/open-logic-badges/branches/olo_axi_byte_stream_bridge.json?cacheSeconds=0)
+![Endpoint Badge](https://img.shields.io/endpoint?url=https://storage.googleapis.com/open-logic-badges/issues/olo_axi_byte_stream_bridge.json?cacheSeconds=0)
 
-VHDL Source: [olo_intf_byte_stream_bridge](../../src/intf/vhdl/olo_intf_byte_stream_bridge.vhd)
+VHDL Source: [olo_axi_byte_stream_bridge](../../src/intf/vhdl/olo_axi_byte_stream_bridge.vhd)
 
 ## Description
 
