@@ -349,6 +349,7 @@ def add_configs(olo_tb):
         "Crc8_Bluetooth_c",
         "Crc16_DectR_c",
         "Crc16_DectX_c",
+        "Crc16_Dds110_c",
         "Crc32_IsoHdlc_c"
     ]
     for CrcName in CrcNames:

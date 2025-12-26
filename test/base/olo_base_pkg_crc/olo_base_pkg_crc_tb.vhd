@@ -52,6 +52,8 @@ architecture sim of olo_base_pkg_crc_tb is
             return Crc16_DectR_c;
         elsif crcName = "Crc16_DectX_c" then
             return Crc16_DectX_c;
+        elsif crcName = "Crc16_Dds110_c" then
+            return Crc16_Dds110_c;
         elsif crcName = "Crc32_IsoHdlc_c" then
             return Crc32_IsoHdlc_c;
         else
@@ -78,6 +80,8 @@ architecture sim of olo_base_pkg_crc_tb is
                 return x"0B13";
             elsif crcName = "Crc16_DectX_c" then
                 return x"0B12";
+            elsif crcName = "Crc16_Dds110_c" then
+                return x"0E0C";
             elsif crcName = "Crc32_IsoHdlc_c" then
                 return x"3C0C8EA1";
             else
@@ -98,6 +102,8 @@ architecture sim of olo_base_pkg_crc_tb is
                 return x"647D";
             elsif crcName = "Crc16_DectX_c" then
                 return x"647C";
+            elsif crcName = "Crc16_Dds110_c" then
+                return x"69C3";
             elsif crcName = "Crc32_IsoHdlc_c" then
                 return x"9626A211";
             else
@@ -118,6 +124,8 @@ architecture sim of olo_base_pkg_crc_tb is
                 return x"297D";
             elsif crcName = "Crc16_DectX_c" then
                 return x"297C";
+            elsif crcName = "Crc16_Dds110_c" then
+                return x"A1E9";
             elsif crcName = "Crc32_IsoHdlc_c" then
                 return x"F37CCD99";
             else
@@ -138,6 +146,8 @@ architecture sim of olo_base_pkg_crc_tb is
                 return x"0265";
             elsif crcName = "Crc16_DectX_c" then
                 return x"0264";
+            elsif crcName = "Crc16_Dds110_c" then
+                return x"3D3D";
             elsif crcName = "Crc32_IsoHdlc_c" then
                 return x"64716A33";
             else
