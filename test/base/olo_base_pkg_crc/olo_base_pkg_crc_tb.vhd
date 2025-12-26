@@ -17,10 +17,6 @@ library vunit_lib;
     context vunit_lib.vc_context;
 
 library olo;
-    use olo.olo_base_pkg_math.all;
-    use olo.olo_base_pkg_logic.all;
-    use olo.olo_base_pkg_array.all;
-    use olo.olo_base_pkg_string.all;
     use olo.olo_base_pkg_crc.all;
 
 ---------------------------------------------------------------------------------------------------
@@ -48,6 +44,8 @@ architecture sim of olo_base_pkg_crc_tb is
     begin
         if crcName = "Crc8_DvbS2_c" then
             return Crc8_DvbS2_c;
+        elsif crcName = "Crc8_Autosar_c" then
+            return Crc8_Autosar_c;
         elsif crcName = "Crc16_DectX_c" then
             return Crc16_DectX_c;
         elsif crcName = "Crc32_IsoHdlc_c" then
@@ -68,6 +66,8 @@ architecture sim of olo_base_pkg_crc_tb is
 
             if crcName = "Crc8_DvbS2_c" then
                 return x"7F";
+            elsif crcName = "Crc8_Autosar_c" then
+                return x"E3";
             elsif crcName = "Crc16_DectX_c" then
                 return x"0B12";
             elsif crcName = "Crc32_IsoHdlc_c" then
@@ -82,6 +82,8 @@ architecture sim of olo_base_pkg_crc_tb is
 
             if crcName = "Crc8_DvbS2_c" then
                 return x"24";
+            elsif crcName = "Crc8_Autosar_c" then
+                return x"E8";
             elsif crcName = "Crc16_DectX_c" then
                 return x"647C";
             elsif crcName = "Crc32_IsoHdlc_c" then
@@ -96,6 +98,8 @@ architecture sim of olo_base_pkg_crc_tb is
 
             if crcName = "Crc8_DvbS2_c" then
                 return x"1E";
+            elsif crcName = "Crc8_Autosar_c" then
+                return x"FF";
             elsif crcName = "Crc16_DectX_c" then
                 return x"297C";
             elsif crcName = "Crc32_IsoHdlc_c" then
@@ -110,6 +114,8 @@ architecture sim of olo_base_pkg_crc_tb is
 
             if crcName = "Crc8_DvbS2_c" then
                 return x"F0";
+            elsif crcName = "Crc8_Autosar_c" then
+                return x"22";
             elsif crcName = "Crc16_DectX_c" then
                 return x"0264";
             elsif crcName = "Crc32_IsoHdlc_c" then
