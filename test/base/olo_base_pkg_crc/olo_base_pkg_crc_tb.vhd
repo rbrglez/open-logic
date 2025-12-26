@@ -46,6 +46,8 @@ architecture sim of olo_base_pkg_crc_tb is
             return Crc8_DvbS2_c;
         elsif crcName = "Crc8_Autosar_c" then
             return Crc8_Autosar_c;
+        elsif crcName = "Crc8_Bluetooth_c" then
+            return Crc8_Bluetooth_c;
         elsif crcName = "Crc16_DectX_c" then
             return Crc16_DectX_c;
         elsif crcName = "Crc32_IsoHdlc_c" then
@@ -68,6 +70,8 @@ architecture sim of olo_base_pkg_crc_tb is
                 return x"7F";
             elsif crcName = "Crc8_Autosar_c" then
                 return x"E3";
+            elsif crcName = "Crc8_Bluetooth_c" then
+                return x"D6";
             elsif crcName = "Crc16_DectX_c" then
                 return x"0B12";
             elsif crcName = "Crc32_IsoHdlc_c" then
@@ -84,6 +88,8 @@ architecture sim of olo_base_pkg_crc_tb is
                 return x"24";
             elsif crcName = "Crc8_Autosar_c" then
                 return x"E8";
+            elsif crcName = "Crc8_Bluetooth_c" then
+                return x"F3";
             elsif crcName = "Crc16_DectX_c" then
                 return x"647C";
             elsif crcName = "Crc32_IsoHdlc_c" then
@@ -100,6 +106,8 @@ architecture sim of olo_base_pkg_crc_tb is
                 return x"1E";
             elsif crcName = "Crc8_Autosar_c" then
                 return x"FF";
+            elsif crcName = "Crc8_Bluetooth_c" then
+                return x"C9";
             elsif crcName = "Crc16_DectX_c" then
                 return x"297C";
             elsif crcName = "Crc32_IsoHdlc_c" then
@@ -116,6 +124,8 @@ architecture sim of olo_base_pkg_crc_tb is
                 return x"F0";
             elsif crcName = "Crc8_Autosar_c" then
                 return x"22";
+            elsif crcName = "Crc8_Bluetooth_c" then
+                return x"65";
             elsif crcName = "Crc16_DectX_c" then
                 return x"0264";
             elsif crcName = "Crc32_IsoHdlc_c" then

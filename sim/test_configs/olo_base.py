@@ -343,7 +343,14 @@ def add_configs(olo_tb):
     ### olo_base_pkg_crc ###
     pkg_crc_tb = 'olo_base_pkg_crc_tb'
     tb = olo_tb.test_bench(pkg_crc_tb)
-    for CrcName in ["Crc8_DvbS2_c", "Crc8_Autosar_c", "Crc16_DectX_c", "Crc32_IsoHdlc_c"]:
+    CrcNames = [
+        "Crc8_DvbS2_c",
+        "Crc8_Autosar_c",
+        "Crc8_Bluetooth_c",
+        "Crc16_DectX_c",
+        "Crc32_IsoHdlc_c"
+    ]
+    for CrcName in CrcNames:
         named_config(tb, {"CrcName_g" : CrcName})
 
     ### olo_base_crc_append ###
