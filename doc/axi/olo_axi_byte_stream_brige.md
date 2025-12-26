@@ -88,9 +88,9 @@ __byte[2] - Command Byte__
 
 | Bits       | Description                                               |
 | :--------- | --------------------------------------------------------- |
-| [7]        | __Type__: '1' = Read, '0' = Write                         |
-| [5:4]      | __Address Bytes__ encoded as `2^N` (1, 2, 4, or 8 bytes)  |
-| [1:0]      | __Data Bytes__ encoded as `2^N` (1, 2, 4, or 8 bytes)     |
+| [7]        | __Type__: <br /> '1' = Read, <br /> '0' = Write           |
+| [5:4]      | __Address Bytes__ encoded as `2^N` <br /> "00" = 1 Byte <br /> "01" = 2 Bytes <br /> "10" = 4 Bytes <br /> "11" = 8 Bytes |
+| [1:0]      | __Data Bytes__ encoded as `2^N` <br /> "00" = 1 Byte <br /> "01" = 2 Bytes <br /> "10" = 4 Bytes <br /> "11" = 8 Bytes |
 | [6], [3:2] | Reserved for future use                                   |
 
 Reserved bits may be used in future revisions to extend data length encoding or to support AXI4 burst transactions.
@@ -102,7 +102,7 @@ A monotonically increasing transaction ID assigned by the requester.
 The ID is echoed in the response and allows the requester to match responses to
 requests, enabling detection of lost or out-of-order frames.
 
-__byte[4:N - 1] - Address and Data Bytes__
+__byte[4:N-1] - Address and Data Bytes__
 
 - __Read request__:  Contains address bytes only
 - __Write request__: Contains address bytes followed by data bytes
@@ -130,21 +130,21 @@ __byte[1:0] - Synchronization Bytes__
 
 - Request Synchronization Bytes: __0x7B5B__
 
-A different synchronization pattern from the request packet is used to clearly
+A different synchronization pattern from the request frame is used to clearly
 distinguish responses from requests during debugging and protocol analysis.
 
 __byte[2] - Status Byte__
 
 | Bits       | Description                                                                     |
 | :--------- | ------------------------------------------------------------------------------- |
-| [7]        | __Type__: '1' = Read, '0' = Write                                               |
-| [5:4]      | __AXI Response code__  "00" - OKAY, "01" - EXOKAY, "10" - SLVERR, "11" - DECERR |
-| [1:0]      | __Data Bytes__ encoded as `2^N` (1, 2, 4, or 8 bytes)                           |
+| [7]        | __Type__: <br /> '1' = Read, <br /> '0' = Write                                 |
+| [5:4]      | __AXI Response code__ <br /> "00" - OKAY, <br /> "01" - EXOKAY, <br /> "10" - SLVERR, <br /> "11" - DECERR |
+| [1:0]      | __Data Bytes__ encoded as `2^N` <br /> "00" = 1 Byte <br /> "01" = 2 Bytes <br /> "10" = 4 Bytes <br /> "11" = 8 Bytes |
 | [6], [3:2] | Reserved for future use                                                         |
 
 __byte[3] - Transaction ID__
 
-The ID of the corresponding request packet.
+The ID of the corresponding request frame.
 
 __byte[4:N-1] - Data Bytes__
 
@@ -154,7 +154,7 @@ __byte[4:N-1] - Data Bytes__
 
 __byte[N:N+1] - CRC__
 
-A 16-bit CRC appended at the end of the packet.
+A 16-bit CRC appended at the end of the frame.
 
 The CRC is calculated over the entire frame excluding the synchronization bytes
 
