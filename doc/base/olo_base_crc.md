@@ -125,8 +125,8 @@ by the table.
 | CRC-8/DVB-S2    | 0xD5         | 0x00           | "MSB_FIRST" | false           | 0x00        |
 | CRC-8/AUTOSAR   | 0x2F         | 0xFF           | "MSB_FIRST" | false           | 0xFF        |
 | CRC-8/BLUETOOTH | 0xA7         | 0x00           | "LSB_FIRST" | true            | 0x00        |
-| CRC-16/DECT-R   | 0x0589       | 0x0000         | "MSB_FIRST" | false           | 0x01        |
-| CRC-16/DDS-110  | 0x8005       | 0x800D         | "MSB_FIRST" | false           | 0x00        |
+| CRC-16/DECT-R   | 0x0589       | 0x0000         | "MSB_FIRST" | false           | 0x0001      |
+| CRC-16/DDS-110  | 0x8005       | 0x800D         | "MSB_FIRST" | false           | 0x0000      |
 
 Below figure depicts the handshaking, the usage of _In_Last_/_In_First_ as well as _Out_Crc_ being valid one clock cycle
 after every data input.
