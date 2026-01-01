@@ -25,9 +25,7 @@ library ieee;
 ---------------------------------------------------------------------------------------------------
 package olo_base_pkg_crc is
 
-    ----------------------------------------------------------------------------
-    -- Types
-    ----------------------------------------------------------------------------
+    -- *** Types ***
     type CrcSettings_r is record
         polynomial    : std_logic_vector;
         initialValue  : std_logic_vector;
@@ -36,9 +34,7 @@ package olo_base_pkg_crc is
         xorOutput     : std_logic_vector;
     end record;
 
-    ----------------------------------------------------------------------------
-    -- Constants
-    ----------------------------------------------------------------------------    
+    -- *** Constants ***
     constant Crc8_DvbS2_c : CrcSettings_r := (
             polynomial    => x"D5",
             initialValue  => x"00",
